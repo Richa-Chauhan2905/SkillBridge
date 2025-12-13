@@ -1,0 +1,241 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  FREELANCER
+  CLIENT
+}
+
+enum Experience {
+  BEGINNER
+  INTERMEDIATE
+  EXPERT
+}
+
+enum Industry {
+  IT
+  HEALTHCARE
+  EDUCATION
+  REAL_ESTATE
+  HOSPITALITY
+  RETAIL
+  E_COMMERCE
+  LEGAL
+  CONSULTING
+  MANUFACTURING
+  TRANSPORTATION
+  LOGISTICS
+  MEDIA
+  ENTERTAINMENT
+  PUBLIC_SECTOR
+  NON_PROFIT
+  ENGINEERING
+  BIOTECH
+  PHARMACEUTICAL
+  AGRICULTURE
+  ENERGY
+  TELECOMMUNICATION
+  SECURITY
+  CYBERSECURITY
+  GAMING
+  SPORTS
+  AUTOMOTIVE
+  AEROSPACE
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+}
+
+enum NotificationType {
+  MESSAGE
+  JOB
+  PAYMENT
+  SYSTEM
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  role      Role     @default(CLIENT)
+  password  String
+  image     String?
+  createdAt DateTime @default(now())
+
+  clientProfile     ClientProfile?
+  freelancerProfile FreelancerProfile?
+
+  jobsCreated Job[] @relation("JobsCreated")
+
+  sentMessages  Message[]      @relation("SentMessages")
+  chats         Chat[]         @relation("ChatParticipants")
+  notifications Notification[]
+  savedJobs     SavedJob[]
+
+  reviewsGiven    Review[] @relation("ReviewsGiven")
+  reviewsReceived Review[] @relation("ReviewsReceived")
+
+  paymentsAsClient     Payment[] @relation("ClientPayments")
+  paymentsAsFreelancer Payment[] @relation("FreelancerPayments")
+}
+
+model ClientProfile {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  industry        Industry
+  companyName     String?
+  companyWebsite  String?
+  linkedInProfile String?
+}
+
+model FreelancerProfile {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  resume      String
+  industry    Industry
+  skills      String[]
+  experience  String
+  education   String
+  languages   String[]
+  bio         String
+  ratePerHour Float
+  DOB         DateTime
+  city        String
+  state       String
+  pincode     Int
+  contact     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Job {
+  id       String @id @default(uuid())
+  client   User   @relation("JobsCreated", fields: [clientId], references: [id])
+  clientId String
+
+  title              String
+  description        String
+  postedAt           DateTime   @default(now())
+  requiredExperience Experience
+  payPerHour         Float?
+
+  mandatorySkills  String[]
+  niceToHaveSkills String[]
+  tools            String[]
+
+  preferredLocation  String?
+  preferredEducation String?
+  clientLocation     String?
+
+  status JobStatus @default(OPEN)
+
+  reviews   Review[]
+  payments  Payment[]
+  savedJobs SavedJob[]
+
+  createdAt DateTime @default(now())
+}
+
+model Chat {
+  id           String    @id @default(uuid())
+  participants User[]    @relation("ChatParticipants")
+  messages     Message[]
+  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime  @default(now())
+}
+
+model Message {
+  id     String @id @default(uuid())
+  chat   Chat   @relation(fields: [chatId], references: [id])
+  chatId String
+
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id])
+  senderId String
+
+  content   String
+  timestamp DateTime @default(now())
+  isSeen    Boolean  @default(false)
+  isTyping  Boolean  @default(false)
+}
+
+model Notification {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  type        NotificationType
+  title       String
+  description String
+  isNew       Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+}
+
+model SavedJob {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  job   Job    @relation(fields: [jobId], references: [id])
+  jobId String
+
+  savedAt DateTime @default(now())
+}
+
+model Review {
+  id    String @id @default(uuid())
+  job   Job    @relation(fields: [jobId], references: [id])
+  jobId String
+
+  freelancer   User   @relation("ReviewsReceived", fields: [freelancerId], references: [id])
+  freelancerId String
+
+  client   User   @relation("ReviewsGiven", fields: [clientId], references: [id])
+  clientId String
+
+  rating      Int
+  description String
+  createdAt   DateTime @default(now())
+}
+
+model Payment {
+  id    String @id @default(uuid())
+  job   Job    @relation(fields: [jobId], references: [id])
+  jobId String
+
+  client   User   @relation("ClientPayments", fields: [clientId], references: [id])
+  clientId String
+
+  freelancer   User   @relation("FreelancerPayments", fields: [freelancerId], references: [id])
+  freelancerId String
+
+  amount    Float
+  status    PaymentStatus
+  createdAt DateTime      @default(now())
+}
