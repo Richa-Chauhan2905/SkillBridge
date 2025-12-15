@@ -102,9 +102,9 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4">
       {/* Professional Pattern Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(100,100,100,0.03)_25%,transparent_25%),linear-gradient(225deg,rgba(100,100,100,0.03)_25%,transparent_25%),linear-gradient(45deg,rgba(100,100,100,0.03)_25%,transparent_25%),linear-gradient(315deg,rgba(100,100,100,0.03)_25%,transparent_25%)] bg-[size:20px_20px]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(100,100,100,0.03)_25%,transparent_25%),linear-gradient(225deg,rgba(100,100,100,0.03)_25%,transparent_25%),linear-gradient(45deg,rgba(100,100,100,0.03)_25%,transparent_25%),linear-gradient(315deg,rgba(100,100,100,0.03)_25%,transparent_25%)] bg-size-[20px_20px]"></div>
 
       {/* Subtle Brand Accent */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full blur-3xl opacity-50"></div>
@@ -112,7 +112,7 @@ export default function SignUpPage() {
 
       <Card className="w-full max-w-md border border-gray-200 shadow-lg rounded-xl bg-white relative overflow-hidden">
         {/* Professional Accent Strip */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-purple-600 to-rose-600"></div>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-amber-500 via-purple-600 to-rose-600"></div>
 
         {/* Decorative Corner Elements */}
         <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-gray-300 rounded-tl-lg"></div>
@@ -122,7 +122,7 @@ export default function SignUpPage() {
 
         <CardHeader className="text-center space-y-3 pb-2 pt-6">
           <div className="flex justify-center mb-2">
-            <div className="p-3 bg-gradient-to-br from-amber-100 to-purple-100 rounded-full border border-gray-200">
+            <div className="p-3 bg-linear-to-br from-amber-100 to-purple-100 rounded-full border border-gray-200">
               <Briefcase className="h-6 w-6 text-gray-700" />
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function SignUpPage() {
           <CardFooter className="flex flex-col gap-4 px-6 pb-8">
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-gray-950 text-white font-medium shadow-sm hover:shadow transition-all duration-200"
+              className="w-full h-11 bg-linear-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-gray-950 text-white font-medium shadow-sm hover:shadow transition-all duration-200"
               disabled={loading}
             >
               {loading ? (
