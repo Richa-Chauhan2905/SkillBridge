@@ -59,6 +59,7 @@ enum Industry {
 enum JobStatus {
   OPEN
   CLOSED
+  FILLED
 }
 
 enum NotificationType {
