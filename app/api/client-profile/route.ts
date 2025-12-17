@@ -1,40 +1,11 @@
-import { getServerSession, User } from "next-auth";
 import { NextResponse, NextRequest } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/options";
 import { prisma } from "@/app";
+import { getAuthUser } from "@/lib/auth";
 
 export const GET = async () => {
-  const session = await getServerSession(authOptions);
-  const user: User = session?.user;
-
-  if (!session || !session.user || !user.email) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Unauthorized",
-      },
-      {
-        status: 401,
-      }
-    );
-  }
 
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "User not found",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
+    const user = await getAuthUser();
 
     const profile = await prisma.clientProfile.findUnique({
       where: {
@@ -93,37 +64,8 @@ export const GET = async () => {
 };
 
 export const POST = async (req: NextRequest) => {
-  const session = await getServerSession(authOptions);
-  const user: User = session?.user;
-
-  if (!session || !session.user || !user.email) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Unauthorized",
-      },
-      {
-        status: 401,
-      }
-    );
-  }
-
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "User not found",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
+    const user = await getAuthUser();
 
     const { industry, companyName, companyWebsite, linkedInProfile } =
       await req.json();
