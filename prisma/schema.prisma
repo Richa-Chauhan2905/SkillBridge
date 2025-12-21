@@ -187,6 +187,8 @@ model Application {
   appliedAt   DateTime @default(now())
 
   status ApplicationStatus @default(PENDING)
+
+  @@unique([jobId, freelancerId])
 }
 
 model Chat {

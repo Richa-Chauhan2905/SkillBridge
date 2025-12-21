@@ -9,11 +9,11 @@ export const proxy = async (req: NextRequest) => {
   // If user is authenticated, redirect away from auth pages
   if (token) {
     if (url.pathname === "/signin" || url.pathname === "/") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return NextResponse.redirect(new URL("/feed", req.url));
     }
     if (url.pathname === "/signup") {
       // After signup, user will be redirected based on their role
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return NextResponse.redirect(new URL("/feed", req.url));
     }
   }
 
@@ -22,7 +22,7 @@ export const proxy = async (req: NextRequest) => {
     if (
       url.pathname.startsWith("/freelancer-profile") ||
       url.pathname.startsWith("/client-profile") ||
-      url.pathname.startsWith("/dashboard")
+      url.pathname.startsWith("/feed")
     ) {
       return NextResponse.redirect(new URL("/signin", req.url));
     }
@@ -39,6 +39,6 @@ export const config = {
     "/signin",
     "/freelancer-profile/:path*",
     "/client-profile/:path*",
-    "/dashboard/:path*",
+    "/feed/:path*",
   ],
 };

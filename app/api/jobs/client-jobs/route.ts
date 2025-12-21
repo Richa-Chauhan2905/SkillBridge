@@ -26,32 +26,25 @@ export const GET = async (req: NextRequest) => {
       where: { clientId: user.id },
       skip: (page - 1) * ITEMS_PER_PAGE,
       take: ITEMS_PER_PAGE,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
       include: {
         client: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            clientProfile: {
-              select: {
-                industry: true,
-                companyName: true,
-                companyWebsite: true,
-                linkedInProfile: true,
-              },
-            },
-          },
+          select: { id: true, firstName: true, lastName: true },
+        },
+        _count: {
+          select: { applications: true },
         },
       },
     });
 
+    const jobsWithApplicationsCount = clientJobs.map((job) => ({
+      ...job,
+      applicationsCount: job._count.applications,
+    }));
+
     const responseData = JSON.stringify({
       success: true,
-      clientJobs,
+      clientJobs: jobsWithApplicationsCount,
       pagination: {
         totalJobs,
         totalPages: Math.ceil(totalJobs / ITEMS_PER_PAGE),

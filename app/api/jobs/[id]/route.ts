@@ -2,7 +2,63 @@ import { prisma } from "@/app";
 import { NextResponse, NextRequest } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 
-export const PUT = async (
+export const GET = async (
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) => {
+  try {
+    const user = await getAuthUser();
+    const jobId = params.id;
+
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!job) {
+      return NextResponse.json(
+        { success: false, error: "Job not found" },
+        { status: 404 }
+      );
+    }
+
+    if (user.role === "FREELANCER") {
+      return NextResponse.json({ success: true, job }, { status: 200 });
+    }
+
+    if (user.role === "CLIENT" && job.clientId !== user.id) {
+      return NextResponse.json({ success: true, job }, { status: 200 });
+    }
+
+    if (user.role === "CLIENT" && job.clientId === user.id) {
+      const applicationsCount = await prisma.application.count({
+        where: { jobId: job.id },
+      });
+      return NextResponse.json(
+        { success: true, job, applicationsCount },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json({ success: true, job }, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching job:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+};
+
+export const PATCH = async (
   req: NextRequest,
   { params }: { params: { jobId: string } }
 ) => {

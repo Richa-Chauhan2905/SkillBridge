@@ -5,7 +5,6 @@ import { Industry, Experience } from "@/app/generated/prisma/enums";
 import { getAuthUser } from "@/lib/auth";
 
 export const GET = async () => {
-
   try {
     const user = await getAuthUser();
 
@@ -24,44 +23,44 @@ export const GET = async () => {
 
     if (!profile) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Profile not found",
-        },
-        {
-          status: 404,
-        }
+        { success: false, error: "Profile not found" },
+        { status: 404 }
       );
     }
 
-    const responseData = JSON.stringify({
-      success: true,
-      profile,
-    });
-
+    // Send full profile including resume URL
     return NextResponse.json(
       {
         success: true,
-        responseData,
+        profile: {
+          id: profile.id,
+          industry: profile.industry,
+          experience: profile.experience,
+          education: profile.education,
+          bio: profile.bio,
+          ratePerHour: profile.ratePerHour,
+          DOB: profile.DOB,
+          contact: profile.contact,
+          city: profile.city,
+          state: profile.state,
+          pincode: profile.pincode,
+          skills: profile.skills,
+          languages: profile.languages,
+          resume: profile.resume, // 🔹 important!
+          createdAt: profile.createdAt,
+        },
       },
-      {
-        status: 401,
-      }
+      { status: 200 }
     );
   } catch (error) {
-    console.error("Error fetching recruiter profile:", error);
+    console.error("Error fetching freelancer profile:", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+      { success: false, error: "Internal server error" },
+      { status: 500 }
     );
   }
 };
+
 
 export const POST = async (req: NextRequest) => {
 
@@ -87,32 +86,6 @@ export const POST = async (req: NextRequest) => {
     const pincodeString = formData.get("pincode") as string;
     const contact = formData.get("contact") as string;
 
-    // Debug each field
-    console.log("=== FIELD VALUES ===");
-    console.log("resume:", resume?.name, "size:", resume?.size);
-    console.log("industry:", industry, "type:", typeof industry);
-    console.log("skillsString:", skillsString, "type:", typeof skillsString);
-    console.log("experience:", experience, "type:", typeof experience);
-    console.log("education:", education, "type:", typeof education);
-    console.log(
-      "languagesString:",
-      languagesString,
-      "type:",
-      typeof languagesString
-    );
-    console.log("bio:", bio, "type:", typeof bio);
-    console.log(
-      "ratePerHourString:",
-      ratePerHourString,
-      "type:",
-      typeof ratePerHourString
-    );
-    console.log("DOB:", DOB, "type:", typeof DOB);
-    console.log("city:", city, "type:", typeof city);
-    console.log("state:", state, "type:", typeof state);
-    console.log("pincodeString:", pincodeString, "type:", typeof pincodeString);
-    console.log("contact:", contact, "type:", typeof contact);
-
     let skills: string[] = [];
     let languages: string[] = [];
 
@@ -136,7 +109,6 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Convert numeric fields
     const ratePerHour = Number(ratePerHourString);
     const pincodeNumber = parseInt(pincodeString, 10);
 
@@ -154,7 +126,6 @@ export const POST = async (req: NextRequest) => {
       isNaN(pincodeNumber)
     );
 
-    // Validate required fields
     const missingFields: string[] = [];
     if (!resume || resume.size === 0) missingFields.push("resume");
     if (!industry) missingFields.push("industry");
@@ -180,7 +151,6 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Validate numeric fields
     if (isNaN(ratePerHour) || ratePerHour <= 0) {
       return NextResponse.json(
         {
