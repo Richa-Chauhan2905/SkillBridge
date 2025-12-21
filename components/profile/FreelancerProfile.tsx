@@ -150,7 +150,7 @@ export default function FreelancerProfile() {
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F1EA]/50 via-white to-[#F5F1EA]/50 py-8 px-4">
+    <div className="min-h-screen bg-linear-to-br from-[#F5F1EA]/50 via-white to-[#F5F1EA]/50 py-8 px-4">
       <div className="max-w-4xl mx-auto relative">
         {/* Page Header */}
         <div className="mb-8 text-center">
@@ -166,11 +166,11 @@ export default function FreelancerProfile() {
         <form onSubmit={handleSubmit}>
           <Card className="bg-white/90 backdrop-blur-sm border border-gray-200 shadow-2xl rounded-2xl overflow-hidden">
             {/* Card Header with accent */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#C2410C] via-amber-600 to-[#C2410C]"></div>
+            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-[#C2410C] via-amber-600 to-[#C2410C]"></div>
 
             <CardHeader className="pb-6 pt-8">
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#C2410C]/10 to-amber-100">
+                <div className="p-2.5 rounded-xl bg-linear-to-br from-[#C2410C]/10 to-amber-100">
                   <User className="h-6 w-6 text-[#C2410C]" />
                 </div>
                 <div>
@@ -348,7 +348,7 @@ export default function FreelancerProfile() {
                   <Textarea
                     value={form.bio}
                     onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                    className="min-h-[120px] border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20 resize-none"
+                    className="min-h-30 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20 resize-none"
                     placeholder="Describe your professional background, expertise, and what makes you unique..."
                     required
                   />
@@ -532,7 +532,7 @@ export default function FreelancerProfile() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-6 bg-gradient-to-r from-[#C2410C] to-amber-700 hover:from-[#C2410C]/90 hover:to-amber-700/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-[#C2410C]/20 transition-all duration-300 text-lg"
+                className="w-full py-6 bg-linear-to-r from-[#C2410C] to-amber-700 hover:from-[#C2410C]/90 hover:to-amber-700/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-[#C2410C]/20 transition-all duration-300 text-lg"
               >
                 {loading ? (
                   <>
