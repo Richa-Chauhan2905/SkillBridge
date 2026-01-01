@@ -50,77 +50,109 @@ export default function SigninPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] px-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-semibold text-[#2D2A26]">
-            Welcome back
-          </CardTitle>
-          <CardDescription className="text-[#6B7280]">
-            Sign in to continue to SkillBridge
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-[#2563EB]">SkillBridge</h1>
+          <p className="text-gray-600 mt-2">Professional Freelance Platform</p>
+        </div>
 
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        <Card className="w-full shadow-sm border-gray-200">
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl font-semibold text-gray-900">
+              Welcome back
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Sign in to continue to SkillBridge
+            </CardDescription>
+          </CardHeader>
 
-          <form onSubmit={handleSignin} className="space-y-4">
-            <div>
-              <Label>Email</Label>
-              <Input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+          <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-            <div>
-              <Label>Password</Label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+            <form onSubmit={handleSignin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-700">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="border-gray-300 focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-700">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="border-gray-300 focus:border-blue-500"
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => router.push("/forgot-password")}
+                    className="text-sm text-[#2563EB] hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
+              >
+                {loading ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
             </div>
 
             <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#C05621] hover:bg-[#9C4221]"
+              variant="outline"
+              className="w-full border-gray-300 hover:bg-gray-50 text-gray-700"
+              onClick={() => signIn("google", { callbackUrl })}
             >
-              {loading ? "Signing in..." : "Sign In"}
+              Continue with Google
             </Button>
-          </form>
 
-          <Separator className="my-6" />
-
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => signIn("google", { callbackUrl })}
-          >
-            Continue with Google
-          </Button>
-
-          <p className="text-center text-sm text-gray-600 mt-4">
-            Don’t have an account?{" "}
-            <button
-              onClick={() => router.push("/signup")}
-              className="text-[#C05621] font-medium hover:underline"
-            >
-              Sign up
-            </button>
-          </p>
-        </CardContent>
-      </Card>
+            <p className="text-center text-sm text-gray-600 mt-6">
+              Don't have an account?{" "}
+              <button
+                onClick={() => router.push("/signup")}
+                className="text-[#2563EB] font-medium hover:underline"
+              >
+                Sign up
+              </button>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

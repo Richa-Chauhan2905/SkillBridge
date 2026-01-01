@@ -32,8 +32,9 @@ import {
   IndianRupeeIcon,
   User,
   Award,
+  Save,
+  Sparkles,
 } from "lucide-react";
-import TagInput from "@/components/TagInput";
 import { toast } from "sonner";
 
 /* ================= ENUM OPTIONS ================= */
@@ -150,11 +151,11 @@ export default function FreelancerProfile() {
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F5F1EA]/50 via-white to-[#F5F1EA]/50 py-8 px-4">
-      <div className="max-w-4xl mx-auto relative">
+    <div className="min-h-screen bg-white py-8 px-4">
+      <div className="max-w-4xl mx-auto">
         {/* Page Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 tracking-tight mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Professional Profile
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
@@ -164,17 +165,17 @@ export default function FreelancerProfile() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <Card className="bg-white/90 backdrop-blur-sm border border-gray-200 shadow-2xl rounded-2xl overflow-hidden">
+          <Card className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden">
             {/* Card Header with accent */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-[#C2410C] via-amber-600 to-[#C2410C]"></div>
+            <div className="h-1 bg-linear-to-r from-blue-600 via-blue-500 to-blue-600"></div>
 
-            <CardHeader className="pb-6 pt-8">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2.5 rounded-xl bg-linear-to-br from-[#C2410C]/10 to-amber-100">
-                  <User className="h-6 w-6 text-[#C2410C]" />
+            <CardHeader className="pb-4 pt-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <User className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold text-gray-800">
+                  <CardTitle className="text-xl font-semibold text-gray-900">
                     Freelancer Profile
                   </CardTitle>
                   <CardDescription className="text-gray-600">
@@ -184,12 +185,12 @@ export default function FreelancerProfile() {
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-8">
+            <CardContent className="space-y-6">
               {/* Section 1: Professional Details */}
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-[#C2410C]" />
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <Briefcase className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-medium text-gray-900">
                     Professional Details
                   </h3>
                 </div>
@@ -199,74 +200,157 @@ export default function FreelancerProfile() {
                   <Label className="text-gray-700 font-medium">
                     Resume (PDF)
                   </Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#C2410C]/50 transition-colors bg-gray-50/50">
-                    <Input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) setResumeFile(f);
-                      }}
-                      className="hidden"
-                      id="resume-upload"
-                    />
-                    <label
-                      htmlFor="resume-upload"
-                      className="cursor-pointer flex flex-col items-center gap-3"
-                    >
-                      <div className="p-3 rounded-full bg-[#C2410C]/10">
-                        <FileText className="h-6 w-6 text-[#C2410C]" />
-                      </div>
-                      <div>
-                        <p className="text-gray-700 font-medium">
-                          {resumeFile
-                            ? resumeFile.name
-                            : "Click to upload resume"}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          PDF format recommended • Max 5MB
-                        </p>
-                      </div>
-                      <Button type="button" variant="outline" className="mt-2">
-                        Choose File
-                      </Button>
-                    </label>
-                  </div>
 
-                  {resumeUrl && (
-                    <Dialog>
-                      <DialogTrigger asChild>
+                  {/* Show only when no resume is uploaded */}
+                  {!resumeUrl && !resumeFile && (
+                    <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors bg-gray-50">
+                      <Input
+                        type="file"
+                        accept=".pdf"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) setResumeFile(f);
+                        }}
+                        className="hidden"
+                        id="resume-upload"
+                      />
+                      <label
+                        htmlFor="resume-upload"
+                        className="cursor-pointer flex flex-col items-center gap-3"
+                      >
+                        <div className="p-3 rounded-full bg-blue-50">
+                          <FileText className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-700 font-medium">
+                            Click to upload resume
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            PDF format recommended • Max 5MB
+                          </p>
+                        </div>
                         <Button
                           type="button"
                           variant="outline"
-                          className="w-full border-gray-300 hover:border-[#C2410C] hover:bg-[#C2410C]/5"
+                          className="mt-2"
                         >
-                          <FileText className="mr-2 h-4 w-4" />
-                          Preview Current Resume
+                          Choose File
                         </Button>
-                      </DialogTrigger>
+                      </label>
+                    </div>
+                  )}
 
-                      <DialogContent className="max-w-4xl h-[80vh] p-0 overflow-hidden flex flex-col">
-                        <DialogHeader className="px-6 py-4 border-b">
-                          <DialogTitle>Resume Preview</DialogTitle>
-                        </DialogHeader>
+                  {/* Show when resume exists (either uploaded now or from server) */}
+                  {(resumeFile || resumeUrl) && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <div className="p-2 rounded-lg bg-blue-50">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-gray-700 font-medium">
+                            {resumeFile
+                              ? resumeFile.name
+                              : "Current Resume.pdf"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {resumeFile ? "New upload" : "Previously uploaded"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Preview
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl h-[80vh] p-0 overflow-hidden flex flex-col">
+                              <DialogHeader className="px-6 py-4 border-b">
+                                <DialogTitle>Resume Preview</DialogTitle>
+                              </DialogHeader>
+                              <iframe
+                                src={`/api/resume/preview?url=${encodeURIComponent(
+                                  resumeUrl || URL.createObjectURL(resumeFile!)
+                                )}`}
+                                className="w-full h-full"
+                                title="Resume Preview"
+                              />
+                            </DialogContent>
+                          </Dialog>
 
-                        <iframe
-                          src={`/api/resume/preview?url=${encodeURIComponent(
-                            resumeUrl
-                          )}`}
-                          className="w-full h-full"
-                          title="Resume Preview"
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="border-red-300 hover:border-red-400 hover:bg-red-50 text-red-600"
+                            onClick={() => {
+                              setResumeFile(null);
+                              setResumeUrl(null);
+                            }}
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Option to replace resume */}
+                      <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors bg-gray-50/50">
+                        <Input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) setResumeFile(f);
+                          }}
+                          className="hidden"
+                          id="replace-resume-upload"
                         />
-                      </DialogContent>
-                    </Dialog>
+                        <label
+                          htmlFor="replace-resume-upload"
+                          className="cursor-pointer flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                            />
+                          </svg>
+                          Replace resume
+                        </label>
+                      </div>
+                    </div>
                   )}
                 </div>
 
                 {/* Industry & Experience Grid */}
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-5">
                   {/* Industry */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Label className="text-gray-700 font-medium">
                       Industry
                     </Label>
@@ -277,7 +361,7 @@ export default function FreelancerProfile() {
                         onChange={(e) =>
                           setForm({ ...form, industry: e.target.value })
                         }
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl bg-white focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/20 transition-colors appearance-none"
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none"
                         required
                       >
                         <option value="" disabled>
@@ -293,7 +377,7 @@ export default function FreelancerProfile() {
                   </div>
 
                   {/* Experience */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Label className="text-gray-700 font-medium">
                       Experience Level
                     </Label>
@@ -304,7 +388,7 @@ export default function FreelancerProfile() {
                         onChange={(e) =>
                           setForm({ ...form, experience: e.target.value })
                         }
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl bg-white focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/20 transition-colors appearance-none"
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none"
                         required
                       >
                         <option value="" disabled>
@@ -321,19 +405,19 @@ export default function FreelancerProfile() {
                 </div>
 
                 {/* Education */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label className="text-gray-700 font-medium flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-[#C2410C]" />
+                    <GraduationCap className="h-4 w-4 text-blue-600" />
                     Education
                   </Label>
                   <div className="relative">
-                    <GraduationCap className="absolute left-3 top-4 h-4 w-4 text-gray-400" />
+                    <GraduationCap className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
                     <Input
                       value={form.education}
                       onChange={(e) =>
                         setForm({ ...form, education: e.target.value })
                       }
-                      className="pl-10 py-2.5 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                      className="pl-10 py-2.5 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       placeholder="e.g., B.Tech Computer Science"
                       required
                     />
@@ -341,14 +425,14 @@ export default function FreelancerProfile() {
                 </div>
 
                 {/* Bio */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label className="text-gray-700 font-medium">
                     Professional Bio
                   </Label>
                   <Textarea
                     value={form.bio}
                     onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                    className="min-h-30 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20 resize-none"
+                    className="min-h-30 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
                     placeholder="Describe your professional background, expertise, and what makes you unique..."
                     required
                   />
@@ -356,49 +440,137 @@ export default function FreelancerProfile() {
               </div>
 
               {/* Section 2: Skills & Languages */}
-              <div className="space-y-6 pt-6 border-t border-gray-200">
+              <div className="space-y-5 pt-5 border-t border-gray-200">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-[#C2410C]/10">
-                    <svg
-                      className="h-4 w-4 text-[#C2410C]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
+                  <div className="p-2 rounded-lg bg-blue-50">
+                    <Sparkles className="h-4 w-4 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <h3 className="text-lg font-medium text-gray-900">
                     Skills & Languages
                   </h3>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <TagInput
-                    label="Skills"
-                    values={skills}
-                    setValues={setSkills}
-                    placeholder="Add your technical skills..."
-                  />
-                  <TagInput
-                    label="Languages"
-                    values={languages}
-                    setValues={setLanguages}
-                    placeholder="Add languages you speak..."
-                  />
+                <div className="grid md:grid-cols-2 gap-5">
+                  {/* Skills Input */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-medium">Skills</Label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {skills.map((skill, index) => (
+                        <div
+                          key={index}
+                          className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newSkills = [...skills];
+                              newSkills.splice(index, 1);
+                              setSkills(newSkills);
+                            }}
+                            className="ml-1 text-blue-700 hover:text-blue-900 focus:outline-none"
+                            aria-label={`Remove ${skill}`}
+                          >
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder="Type a skill and press Enter..."
+                      className="border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const input = e.currentTarget;
+                          const value = input.value.trim();
+                          if (value && !skills.includes(value)) {
+                            setSkills([...skills, value]);
+                            input.value = "";
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Languages Input */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-medium">
+                      Languages
+                    </Label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {languages.map((language, index) => (
+                        <div
+                          key={index}
+                          className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium"
+                        >
+                          {language}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newLanguages = [...languages];
+                              newLanguages.splice(index, 1);
+                              setLanguages(newLanguages);
+                            }}
+                            className="ml-1 text-blue-700 hover:text-blue-900 focus:outline-none"
+                            aria-label={`Remove ${language}`}
+                          >
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder="Type a language and press Enter..."
+                      className="border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const input = e.currentTarget;
+                          const value = input.value.trim();
+                          if (value && !languages.includes(value)) {
+                            setLanguages([...languages, value]);
+                            input.value = "";
+                          }
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-
               {/* Section 3: Location & Contact */}
-              <div className="space-y-6 pt-6 border-t border-gray-200">
+              <div className="space-y-5 pt-5 border-t border-gray-200">
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-[#C2410C]" />
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-medium text-gray-900">
                     Location & Contact
                   </h3>
                 </div>
@@ -415,7 +587,7 @@ export default function FreelancerProfile() {
                         onChange={(e) =>
                           setForm({ ...form, city: e.target.value })
                         }
-                        className="pl-10 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                        className="pl-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         required
                       />
                     </div>
@@ -429,7 +601,7 @@ export default function FreelancerProfile() {
                       onChange={(e) =>
                         setForm({ ...form, state: e.target.value })
                       }
-                      className="border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                      className="border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       required
                     />
                   </div>
@@ -443,17 +615,17 @@ export default function FreelancerProfile() {
                       onChange={(e) =>
                         setForm({ ...form, pincode: e.target.value })
                       }
-                      className="border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                      className="border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       required
                     />
                   </div>
                 </div>
 
                 {/* DOB & Contact Grid */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
                     <Label className="text-gray-700 font-medium flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-[#C2410C]" />
+                      <Calendar className="h-4 w-4 text-blue-600" />
                       Date of Birth
                     </Label>
                     <div className="relative">
@@ -464,15 +636,15 @@ export default function FreelancerProfile() {
                         onChange={(e) =>
                           setForm({ ...form, DOB: e.target.value })
                         }
-                        className="pl-10 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                        className="pl-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Label className="text-gray-700 font-medium flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-[#C2410C]" />
+                      <Phone className="h-4 w-4 text-blue-600" />
                       Contact Number
                     </Label>
                     <div className="relative">
@@ -483,7 +655,7 @@ export default function FreelancerProfile() {
                         onChange={(e) =>
                           setForm({ ...form, contact: e.target.value })
                         }
-                        className="pl-10 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                        className="pl-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         required
                       />
                     </div>
@@ -492,15 +664,15 @@ export default function FreelancerProfile() {
               </div>
 
               {/* Section 4: Rate */}
-              <div className="space-y-6 pt-6 border-t border-gray-200">
+              <div className="space-y-5 pt-5 border-t border-gray-200">
                 <div className="flex items-center gap-2">
-                  <IndianRupeeIcon className="h-5 w-5 text-[#C2410C]" />
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <IndianRupeeIcon className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-medium text-gray-900">
                     Hourly Rate
                   </h3>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label className="text-gray-700 font-medium">
                     Rate per hour (USD)
                   </Label>
@@ -513,7 +685,7 @@ export default function FreelancerProfile() {
                       onChange={(e) =>
                         setForm({ ...form, ratePerHour: e.target.value })
                       }
-                      className="pl-10 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                      className="pl-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       required
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
@@ -528,19 +700,22 @@ export default function FreelancerProfile() {
               </div>
             </CardContent>
 
-            <CardFooter className="pt-8 pb-10 border-t border-gray-200">
+            <CardFooter className="pt-6 pb-8 border-t border-gray-200">
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-6 bg-linear-to-r from-[#C2410C] to-amber-700 hover:from-[#C2410C]/90 hover:to-amber-700/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-[#C2410C]/20 transition-all duration-300 text-lg"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="animate-spin mr-3 h-5 w-5" />
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
                     Saving Profile...
                   </>
                 ) : (
-                  "Save Professional Profile"
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Professional Profile
+                  </>
                 )}
               </Button>
             </CardFooter>

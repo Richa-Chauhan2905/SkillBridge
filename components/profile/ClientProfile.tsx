@@ -20,6 +20,7 @@ import {
   Linkedin,
   Briefcase,
   User,
+  Save,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -108,11 +109,11 @@ export default function ClientProfile() {
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#F5F1EA]/50 via-white to-[#F5F1EA]/50 py-8 px-4">
+    <div className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Page Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Client Profile
           </h1>
           <p className="text-gray-600">
@@ -121,17 +122,17 @@ export default function ClientProfile() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <Card className="bg-white/90 backdrop-blur-sm border border-gray-200 shadow-2xl rounded-2xl overflow-hidden relative">
+          <Card className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden">
             {/* Accent bar */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-[#C2410C] via-amber-600 to-[#C2410C]" />
+            <div className="h-1 bg-linear-to-r from-blue-600 via-blue-500 to-blue-600" />
 
-            <CardHeader className="pt-8 pb-6">
+            <CardHeader className="pt-6 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-linear-to-br from-[#C2410C]/10 to-amber-100">
-                  <User className="h-6 w-6 text-[#C2410C]" />
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <Building2 className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold text-gray-800">
+                  <CardTitle className="text-xl font-semibold text-gray-900">
                     Company Information
                   </CardTitle>
                   <CardDescription className="text-gray-600">
@@ -141,7 +142,7 @@ export default function ClientProfile() {
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-5">
               {/* Industry */}
               <div className="space-y-2">
                 <Label className="text-gray-700 font-medium">
@@ -154,7 +155,7 @@ export default function ClientProfile() {
                     onChange={(e) =>
                       setForm({ ...form, industry: e.target.value })
                     }
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl bg-white focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/20"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                     required
                   >
                     <option value="" disabled>
@@ -182,7 +183,7 @@ export default function ClientProfile() {
                     onChange={(e) =>
                       setForm({ ...form, companyName: e.target.value })
                     }
-                    className="pl-10 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                    className="pl-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -200,7 +201,7 @@ export default function ClientProfile() {
                     onChange={(e) =>
                       setForm({ ...form, companyWebsite: e.target.value })
                     }
-                    className="pl-10 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                    className="pl-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -218,30 +219,39 @@ export default function ClientProfile() {
                     onChange={(e) =>
                       setForm({ ...form, linkedInProfile: e.target.value })
                     }
-                    className="pl-10 border-gray-300 rounded-xl focus:border-[#C2410C] focus:ring-[#C2410C]/20"
+                    className="pl-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               </div>
             </CardContent>
 
-            <CardFooter className="pt-6 pb-8 border-t border-gray-200">
+            <CardFooter className="pt-4 pb-6 border-t border-gray-200">
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-6 bg-linear-to-r from-[#C2410C] to-amber-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-[#C2410C]/20 transition-all"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="animate-spin mr-2 h-5 w-5" />
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
                     Saving Profile...
                   </>
                 ) : (
-                  "Save Client Profile"
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Client Profile
+                  </>
                 )}
               </Button>
             </CardFooter>
           </Card>
         </form>
+
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p>
+            Your profile helps freelancers understand your business needs better
+          </p>
+        </div>
       </div>
     </div>
   );
