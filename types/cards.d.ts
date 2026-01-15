@@ -1,5 +1,5 @@
 import { Freelancer } from "./freelancer";
-import { Job } from "./job";
+import { Job } from "./jobDetails";
 
 export interface FreelancerCardProps extends Freelancer {
   onViewProfile: (id: string) => void;

@@ -36,23 +36,54 @@ export const GET = async () => {
         industry: client.industry,
       },
       select: {
+        id: true,
         userId: true,
         ratePerHour: true,
         city: true,
         state: true,
+        DOB: true,
         experience: true,
+        industry: true,
+        bio: true,
+        education: true,
+        skills: true,
+        languages: true,
+        resume: true, // Add this
+        pincode: true,
+        contact: true,
         user: {
           select: {
             firstName: true,
             lastName: true,
+            email: true,
           },
         },
       },
     });
 
+    const transformedFreelancers = freelancers.map((f) => ({
+      id: f.id,
+      firstName: f.user.firstName,
+      lastName: f.user.lastName,
+      email: f.user.email,
+      industry: f.industry,
+      skills: f.skills || [],
+      experience: f.experience,
+      education: f.education || "",
+      bio: f.bio || "",
+      resume: f.resume,
+      ratePerHour: f.ratePerHour,
+      city: f.city,
+      state: f.state,
+      contact: f.contact || "",
+      languages: f.languages || [],
+      DOB: f.DOB,
+      pincode: f.pincode,
+    }));
+
     return NextResponse.json({
       success: true,
-      freelancers,
+      transformedFreelancers,
     });
   } catch (error) {
     return NextResponse.json(

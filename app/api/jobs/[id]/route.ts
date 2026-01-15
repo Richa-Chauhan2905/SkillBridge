@@ -8,7 +8,7 @@ export const GET = async (
 ) => {
   try {
     const user = await getAuthUser();
-    const jobId = params.id;
+    const jobId = await params.id;
 
     const job = await prisma.job.findUnique({
       where: { id: jobId },

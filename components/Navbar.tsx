@@ -23,7 +23,6 @@ export default function Navbar() {
   return (
     <nav className="w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-        {/* LEFT — LOGO */}
         <Link
           href={session ? "/feed" : "/"}
           className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
@@ -31,23 +30,25 @@ export default function Navbar() {
           SkillBridge
         </Link>
 
-        {/* RIGHT */}
         {!session ? (
-          // 🔓 NOT LOGGED IN
           <div className="flex items-center gap-4">
-            <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50">
+            <Button
+              asChild
+              variant="ghost"
+              className="text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+            >
               <Link href="/signin">Sign In</Link>
             </Button>
-            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button
+              asChild
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               <Link href="/signup">Get Started</Link>
             </Button>
           </div>
         ) : (
-          // 🔐 LOGGED IN
           <div className="flex items-center gap-8">
-            {/* Navigation Links */}
             <div className="flex items-center gap-8">
-              {/* Home */}
               <Link
                 href="/feed"
                 className={`flex items-center gap-2 text-sm transition-colors ${
@@ -60,7 +61,6 @@ export default function Navbar() {
                 Home
               </Link>
 
-              {/* Search for Freelancers (Client only) */}
               {role === "CLIENT" && (
                 <Link
                   href="/search-freelancers"
@@ -71,7 +71,6 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* Search for Jobs (Freelancer only) */}
               {role === "FREELANCER" && (
                 <Link
                   href="/search-jobs"
@@ -82,7 +81,6 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* Post Job (Client only) */}
               {role === "CLIENT" && (
                 <Link
                   href="/post-job"
@@ -93,7 +91,6 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* Role-based links */}
               {role === "FREELANCER" && (
                 <Link
                   href="/saved-jobs"
@@ -122,7 +119,6 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* Messages */}
               <Link
                 href="/messages"
                 className={`flex items-center gap-2 text-sm transition-colors ${
@@ -136,16 +132,19 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Separator */}
             <div className="h-6 w-px bg-gray-300" />
 
-            {/* Profile */}
-            <Link href="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Link
+              href="/profile"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-medium text-gray-900">
                   {session.user?.firstName} {session.user?.lastName}
                 </p>
-                <p className="text-xs text-gray-500 capitalize">{role?.toLowerCase()}</p>
+                <p className="text-xs text-gray-500 capitalize">
+                  {role?.toLowerCase()}
+                </p>
               </div>
               <Avatar className="h-9 w-9 border-2 border-blue-100">
                 <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
