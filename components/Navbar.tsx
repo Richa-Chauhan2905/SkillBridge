@@ -8,9 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Briefcase,
   Bookmark,
-  Home,
   MessageSquare,
-  Search,
   PlusCircle,
 } from "lucide-react";
 
@@ -24,7 +22,7 @@ export default function Navbar() {
     <nav className="w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <Link
-          href={session ? "/feed" : "/"}
+          href={session ? (role === "FREELANCER" ? "/freelancer-feed" : "/client-feed") : "/"}
           className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
         >
           SkillBridge
@@ -49,60 +47,57 @@ export default function Navbar() {
         ) : (
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-8">
-              <Link
-                href="/feed"
-                className={`flex items-center gap-2 text-sm transition-colors ${
-                  pathname === "/feed"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-700 hover:text-blue-600"
-                }`}
-              >
-                <Home size={18} />
-                Home
-              </Link>
-
+              
               {role === "CLIENT" && (
-                <Link
-                  href="/search-freelancers"
-                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  <Search size={18} />
-                  Find Freelancers
-                </Link>
+                <>
+                  {/* <Link
+                    href="/client-feed"
+                    className={`flex items-center gap-2 text-sm transition-colors ${
+                      pathname === "/client-feed"
+                        ? "text-blue-600 font-medium"
+                        : "text-gray-700 hover:text-blue-600"
+                    }`}
+                  >
+                    <Search size={18} />
+                    Find Freelancers
+                  </Link> */}
+                  
+                  <Link
+                    href="/post-job"
+                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors"
+                  >
+                    <PlusCircle size={18} />
+                    Post Job
+                  </Link>
+                </>
               )}
 
               {role === "FREELANCER" && (
-                <Link
-                  href="/search-jobs"
-                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  <Search size={18} />
-                  Find Jobs
-                </Link>
-              )}
-
-              {role === "CLIENT" && (
-                <Link
-                  href="/post-job"
-                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  <PlusCircle size={18} />
-                  Post Job
-                </Link>
-              )}
-
-              {role === "FREELANCER" && (
-                <Link
-                  href="/saved-jobs"
-                  className={`flex items-center gap-2 text-sm transition-colors ${
-                    pathname === "/saved-jobs"
-                      ? "text-blue-600 font-medium"
-                      : "text-gray-700 hover:text-blue-600"
-                  }`}
-                >
-                  <Bookmark size={18} />
-                  Saved Jobs
-                </Link>
+                <>
+                  <Link
+                    href="/freelancer-feed"
+                    className={`flex items-center gap-2 text-sm transition-colors ${
+                      pathname === "/freelancer-feed"
+                        ? "text-blue-600 font-medium"
+                        : "text-gray-700 hover:text-blue-600"
+                    }`}
+                  >
+                    <Briefcase size={18} />
+                    Job Feed
+                  </Link>
+                  
+                  <Link
+                    href="/saved-jobs"
+                    className={`flex items-center gap-2 text-sm transition-colors ${
+                      pathname === "/saved-jobs"
+                        ? "text-blue-600 font-medium"
+                        : "text-gray-700 hover:text-blue-600"
+                    }`}
+                  >
+                    <Bookmark size={18} />
+                    Saved Jobs
+                  </Link>
+                </>
               )}
 
               {role === "CLIENT" && (

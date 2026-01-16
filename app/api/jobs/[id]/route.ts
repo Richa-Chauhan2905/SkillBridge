@@ -4,11 +4,12 @@ import { getAuthUser } from "@/lib/auth";
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const user = await getAuthUser();
-    const jobId = await params.id;
+
+    const { id: jobId } = await params;
 
     const job = await prisma.job.findUnique({
       where: { id: jobId },
@@ -31,24 +32,26 @@ export const GET = async (
     }
 
     if (user.role === "FREELANCER") {
-      return NextResponse.json({ success: true, job }, { status: 200 });
+      return NextResponse.json({ success: true, job });
     }
 
     if (user.role === "CLIENT" && job.clientId !== user.id) {
-      return NextResponse.json({ success: true, job }, { status: 200 });
+      return NextResponse.json({ success: true, job });
     }
 
     if (user.role === "CLIENT" && job.clientId === user.id) {
       const applicationsCount = await prisma.application.count({
         where: { jobId: job.id },
       });
-      return NextResponse.json(
-        { success: true, job, applicationsCount },
-        { status: 200 }
-      );
+
+      return NextResponse.json({
+        success: true,
+        job,
+        applicationsCount,
+      });
     }
 
-    return NextResponse.json({ success: true, job }, { status: 200 });
+    return NextResponse.json({ success: true, job });
   } catch (error) {
     console.error("Error fetching job:", error);
     return NextResponse.json(
@@ -60,38 +63,22 @@ export const GET = async (
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const user = await getAuthUser();
 
-    const client = await prisma.user.findUnique({
-      where: {
-        id: user.id,
-      },
-      select: {
-        role: true,
-      },
-    });
-
-    if (client?.role !== "CLIENT") {
+    if (user.role !== "CLIENT") {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Forbidden: Only recruiters can post jobs",
-        },
-        {
-          status: 403,
-        }
+        { success: false, error: "Only clients can update jobs" },
+        { status: 403 }
       );
     }
 
-    const { jobId } = params;
+    const { id: jobId } = await params;
 
     const job = await prisma.job.findUnique({
-      where: {
-        id: jobId,
-      },
+      where: { id: jobId },
     });
 
     if (!job) {
@@ -109,6 +96,7 @@ export const PATCH = async (
     }
 
     const data = await req.json();
+
     const updatedJob = await prisma.job.update({
       where: { id: jobId },
       data: {
@@ -125,7 +113,7 @@ export const PATCH = async (
       },
     });
 
-    return NextResponse.json({ success: true, updatedJob }, { status: 200 });
+    return NextResponse.json({ success: true, updatedJob });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message },

@@ -21,7 +21,7 @@ export const GET = async () => {
       select: { industry: true },
     });
 
-    if (!client) {
+    if (!client) {  
       return NextResponse.json(
         {
           success: false,
