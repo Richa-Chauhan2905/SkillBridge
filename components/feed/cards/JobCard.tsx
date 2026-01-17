@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   IndianRupeeIcon,
@@ -11,10 +11,6 @@ import {
   Briefcase,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  JobStatus,
-  ApplicationStatus,
-} from "@/app/generated/prisma/enums";
 
 /* ================= TYPES ================= */
 
@@ -31,9 +27,9 @@ export interface JobCardProps {
     };
   };
   isSaved?: boolean;
-  applicationStatus?: ApplicationStatus | null;
-  onSaveJob?: (id: string) => void;
-  onUnsaveJob?: (id: string) => void;
+  applicationStatus?: string | null;
+  onSaveJob?: (id: string) => Promise<void> | void;
+  onUnsaveJob?: (id: string) => Promise<void> | void;
   onApply?: (id: string) => void;
   onViewJob?: (id: string) => void;
 }
@@ -54,23 +50,47 @@ export default function JobCard({
   onViewJob,
 }: JobCardProps) {
   const [saved, setSaved] = useState(isSaved);
+  const [saving, setSaving] = useState(false);
+  const [applied, setApplied] = useState<boolean>(applicationStatus !== null);
 
   // Check if user has applied
-  const hasApplied = applicationStatus !== null;
+  const hasApplied = applied;
 
   // Get client display name
   const clientName = `${client.firstName} ${client.lastName}`;
   const companyName = client.clientProfile?.companyName;
   const displayName = companyName || clientName;
 
-  const handleSave = (e: React.MouseEvent) => {
+  useEffect(() => {
+    setApplied(applicationStatus !== null);
+  }, [applicationStatus]);
+
+  const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const newSavedState = !saved;
-    setSaved(newSavedState);
-    if (newSavedState && onSaveJob) {
-      onSaveJob(id);
-    } else if (!newSavedState && onUnsaveJob) {
-      onUnsaveJob(id);
+
+    try {
+      setSaving(true);
+      const newSavedState = !saved;
+
+      if (newSavedState) {
+        // Save job
+        if (onSaveJob) {
+          await onSaveJob(id);
+        }
+        setSaved(true);
+      } else {
+        // Unsave job
+        if (onUnsaveJob) {
+          await onUnsaveJob(id);
+        }
+        setSaved(false);
+      }
+    } catch (error) {
+      console.error("Failed to update saved job:", error);
+      // Revert UI state on error
+      setSaved(saved);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -103,10 +123,13 @@ export default function JobCard({
         {/* Save Button */}
         <button
           onClick={handleSave}
-          className="text-gray-400 hover:text-blue-500 transition-colors shrink-0 ml-2"
+          disabled={saving}
+          className="text-gray-400 hover:text-blue-500 transition-colors shrink-0 ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label={saved ? "Unsave job" : "Save job"}
         >
-          {saved ? (
+          {saving ? (
+            <Bookmark className="h-5 w-5 animate-pulse" />
+          ) : saved ? (
             <BookmarkCheck className="h-5 w-5 text-blue-500" />
           ) : (
             <Bookmark className="h-5 w-5" />
@@ -155,12 +178,12 @@ export default function JobCard({
         <div className="flex justify-between items-center">
           <div className="flex-1">
             {hasApplied ? (
-              <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+              <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Applied
               </Badge>
             ) : (
-              <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs">
+              <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
                 Available
               </Badge>
             )}
@@ -168,19 +191,15 @@ export default function JobCard({
 
           <div className="flex items-center gap-2">
             {hasApplied ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-green-300 text-green-700 bg-green-50 cursor-default"
-                disabled
-              >
-                ✓ Applied
-              </Button>
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-md border-2 border-gray-100 bg-gray-50">
+                <CheckCircle className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-500">Applied</span>
+              </div>
             ) : (
               <Button
                 size="sm"
                 onClick={handleApply}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 shadow-sm"
               >
                 <Send className="h-4 w-4 mr-1" />
                 Apply

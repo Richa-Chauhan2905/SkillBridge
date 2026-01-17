@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import api from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import JobCard from "@/components/feed/cards/JobCard";
@@ -56,6 +57,13 @@ interface Job {
   };
 }
 
+interface AppliedJob {
+  id: string;
+  jobId: string;
+  status: ApplicationStatus;
+  job?: Job; // Include the job data if your API returns it
+}
+
 export default function FreelancerFeed() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -63,9 +71,10 @@ export default function FreelancerFeed() {
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
-  const [applications, setApplications] = useState<
+  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set()); // Track applied job IDs
+  const [appliedJobsMap, setAppliedJobsMap] = useState<
     Map<string, ApplicationStatus>
-  >(new Map());
+  >(new Map()); // Track application status
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -77,7 +86,7 @@ export default function FreelancerFeed() {
   const [selectedJobType, setSelectedJobType] = useState<string>("ALL");
   const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
   const [selectedTools, setSelectedTools] = useState<Set<string>>(new Set());
-  
+
   // Pay range filter (max only, min fixed to 20)
   const [maxPay, setMaxPay] = useState<number>(5000);
 
@@ -97,7 +106,10 @@ export default function FreelancerFeed() {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowExperienceDropdown(false);
         setShowPayRangeDropdown(false);
         setShowJobTypeDropdown(false);
@@ -106,8 +118,64 @@ export default function FreelancerFeed() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch applied jobs from the new endpoint
+  const fetchAppliedJobs = useCallback(async () => {
+    try {
+      const response = await fetch("/api/my-applications");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const appliedIds = new Set<string>();
+          const appliedMap = new Map<string, ApplicationStatus>();
+
+          data.applications?.forEach((app: AppliedJob) => {
+            appliedIds.add(app.jobId);
+            appliedMap.set(app.jobId, app.status);
+          });
+
+          setAppliedJobs(appliedIds);
+          setAppliedJobsMap(appliedMap);
+
+          // Update localStorage for backward compatibility
+          localStorage.setItem(
+            "freelancerAppliedJobs",
+            JSON.stringify(
+              data.applications?.map((app: AppliedJob) => ({
+                id: app.jobId,
+                status: app.status,
+              })) || []
+            )
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch applied jobs:", error);
+      // Fallback to localStorage if backend fails
+      const appliedJobsStr = localStorage.getItem("freelancerAppliedJobs");
+      if (appliedJobsStr) {
+        try {
+          const appliedJobsArray = JSON.parse(appliedJobsStr);
+          const appliedIds = new Set<string>();
+          const appliedMap = new Map<string, ApplicationStatus>();
+
+          appliedJobsArray.forEach(
+            (job: { id: string; status: ApplicationStatus }) => {
+              appliedIds.add(job.id);
+              appliedMap.set(job.id, job.status);
+            }
+          );
+
+          setAppliedJobs(appliedIds);
+          setAppliedJobsMap(appliedMap);
+        } catch (error) {
+          console.error("Error parsing applied jobs:", error);
+        }
+      }
+    }
   }, []);
 
   // Define fetchJobs with useCallback
@@ -135,12 +203,12 @@ export default function FreelancerFeed() {
           );
           setAllSkills(skills);
           setAllTools(tools);
-          
+
           // Set initial max pay based on fetched jobs
           const payRates = fetchedJobs
             .filter((job: Job) => job.payPerHour)
             .map((job: Job) => job.payPerHour as number);
-          
+
           if (payRates.length > 0) {
             const max = Math.ceil(Math.max(...payRates));
             setMaxPay(max);
@@ -157,42 +225,65 @@ export default function FreelancerFeed() {
   useEffect(() => {
     if (!session) return;
 
-    fetchJobs(currentPage);
-
-    // Get saved jobs from localStorage
-    const savedJobsStr = localStorage.getItem("freelancerSavedJobs");
-    if (savedJobsStr) {
+    const initializeData = async () => {
       try {
-        const savedJobsArray = JSON.parse(savedJobsStr);
-        setSavedJobs(new Set(savedJobsArray));
-      } catch (error) {
-        console.error("Error parsing saved jobs:", error);
-      }
-    }
+        setLoading(true);
 
-    // Get applied jobs from localStorage
-    const appliedJobsStr = localStorage.getItem("freelancerAppliedJobs");
-    if (appliedJobsStr) {
-      try {
-        const appliedJobs = JSON.parse(appliedJobsStr);
-        const appsMap = new Map<string, ApplicationStatus>();
-        appliedJobs.forEach(
-          (job: { id: string; status: ApplicationStatus }) => {
-            appsMap.set(job.id, job.status);
+        // Fetch jobs
+        await fetchJobs(currentPage);
+
+        // Fetch applied jobs
+        await fetchAppliedJobs();
+
+        // Fetch saved jobs from backend
+        try {
+          const response = await fetch("/api/saved-jobs");
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              const savedJobIds =
+                data.savedJobs?.map((job: any) => job.id) || [];
+              setSavedJobs(new Set(savedJobIds));
+
+              // Also update localStorage for backward compatibility
+              localStorage.setItem(
+                "freelancerSavedJobs",
+                JSON.stringify(savedJobIds)
+              );
+            }
           }
-        );
-        setApplications(appsMap);
+        } catch (error) {
+          console.error("Error fetching saved jobs from backend:", error);
+          // Fallback to localStorage if backend fails
+          const savedJobsStr = localStorage.getItem("freelancerSavedJobs");
+          if (savedJobsStr) {
+            try {
+              const savedJobsArray = JSON.parse(savedJobsStr);
+              setSavedJobs(new Set(savedJobsArray));
+            } catch (error) {
+              console.error("Error parsing saved jobs:", error);
+            }
+          }
+        }
       } catch (error) {
-        console.error("Error parsing applied jobs:", error);
+        console.error("Error initializing data:", error);
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [session, currentPage, fetchJobs]);
+    };
 
+    initializeData();
+  }, [session, currentPage, fetchJobs, fetchAppliedJobs]);
+
+  // Apply filters whenever filter criteria change
   // Apply filters whenever filter criteria change
   useEffect(() => {
     if (jobs.length === 0) return;
 
     let result = [...jobs];
+
+    // FILTER OUT APPLIED JOBS - Add this filter first
+    result = result.filter((job) => !appliedJobs.has(job.id));
 
     // Search filter
     if (searchTerm) {
@@ -265,6 +356,7 @@ export default function FreelancerFeed() {
     selectedSkills,
     selectedTools,
     maxPay,
+    appliedJobs, // Add appliedJobs to dependencies
   ]);
 
   const handleViewJob = (id: string) => {
@@ -273,72 +365,95 @@ export default function FreelancerFeed() {
 
   const handleSaveJob = async (id: string) => {
     try {
-      // Use localStorage for now
-      const savedJobsStr = localStorage.getItem("freelancerSavedJobs") || "[]";
-      let savedJobsArray = JSON.parse(savedJobsStr);
-
       if (savedJobs.has(id)) {
-        // Remove from saved
+        // Remove from saved - DELETE request to backend
+        await api.delete("/saved-jobs", {
+          data: { jobId: id },
+        });
+
+        // Update localStorage
+        const savedJobsStr =
+          localStorage.getItem("freelancerSavedJobs") || "[]";
+        let savedJobsArray = JSON.parse(savedJobsStr);
         savedJobsArray = savedJobsArray.filter((jobId: string) => jobId !== id);
+
+        // Update state
         setSavedJobs((prev) => {
           const newSet = new Set(prev);
           newSet.delete(id);
           return newSet;
         });
-      } else {
-        // Add to saved
-        savedJobsArray.push(id);
-        setSavedJobs((prev) => new Set([...prev, id]));
-      }
 
-      localStorage.setItem(
-        "freelancerSavedJobs",
-        JSON.stringify(savedJobsArray)
-      );
+        localStorage.setItem(
+          "freelancerSavedJobs",
+          JSON.stringify(savedJobsArray)
+        );
+      } else {
+        // Add to saved - POST request to backend
+        await api.post("/saved-jobs", { jobId: id });
+
+        // Update localStorage
+        const savedJobsStr =
+          localStorage.getItem("freelancerSavedJobs") || "[]";
+        let savedJobsArray = JSON.parse(savedJobsStr);
+        savedJobsArray.push(id);
+
+        // Update state
+        setSavedJobs((prev) => new Set([...prev, id]));
+
+        localStorage.setItem(
+          "freelancerSavedJobs",
+          JSON.stringify(savedJobsArray)
+        );
+      }
     } catch (error) {
-      console.error("Failed to save job:", error);
+      console.error("Failed to update saved job:", error);
+      throw error; // Re-throw so JobCard can handle the error
     }
   };
 
   const handleApply = async (id: string) => {
     try {
+      // Optimistic UI update
+      setAppliedJobs((prev) => new Set([...prev, id]));
+      setAppliedJobsMap((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(id, "PENDING");
+        return newMap;
+      });
+
       const response = await fetch(`/api/jobs/${id}/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
 
       if (response.ok) {
-        // Update localStorage
-        const appliedJobsStr =
-          localStorage.getItem("freelancerAppliedJobs") || "[]";
-        let appliedJobs = JSON.parse(appliedJobsStr);
-
-        // Check if already applied
-        const existingApplication = appliedJobs.find(
-          (job: any) => job.id === id
-        );
-        if (!existingApplication) {
-          appliedJobs.push({ id, status: "PENDING" });
-          localStorage.setItem(
-            "freelancerAppliedJobs",
-            JSON.stringify(appliedJobs)
-          );
-        }
-
-        // Update state
-        setApplications((prev) => {
-          const newMap = new Map<string, ApplicationStatus>(prev);
-          newMap.set(id, "PENDING");
+        // Refresh applied jobs list from backend
+        await fetchAppliedJobs();
+      } else {
+        // Revert optimistic update on error
+        setAppliedJobs((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
+        setAppliedJobsMap((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(id);
           return newMap;
         });
-      } else {
+
         const errorData = await response.json();
-        console.error("Failed to apply:", errorData.message);
+        throw new Error(errorData.message || "Failed to apply");
       }
     } catch (error) {
       console.error("Failed to apply:", error);
+      throw error;
     }
   };
+
+  // Calculate stats from current data
+  const appliedJobsCount = appliedJobs.size;
 
   // Experience levels
   const experienceLevels = [
@@ -430,18 +545,19 @@ export default function FreelancerFeed() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             {/* Stats Cards */}
             <div className="flex gap-4">
+              {/* In the stats cards section, update the jobs count:*/}
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1.5">
                   <Briefcase className="h-4 w-4 text-blue-600" />
                   <span className="font-semibold text-gray-900 text-sm">
-                    {filteredJobs.length}
+                    {filteredJobs.length}{" "}
+                    {/* This now shows only non-applied jobs */}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5">Jobs</p>
+                <p className="text-xs text-gray-500 mt-0.5">Available Jobs</p>{" "}
+                {/* Changed label */}
               </div>
-
               <div className="h-8 w-px bg-gray-300"></div>
-
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1.5">
                   <Bookmark className="h-4 w-4 text-amber-600" />
@@ -451,14 +567,12 @@ export default function FreelancerFeed() {
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">Saved</p>
               </div>
-
               <div className="h-8 w-px bg-gray-300"></div>
-
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="font-semibold text-gray-900 text-sm">
-                    {applications.size}
+                    {appliedJobsCount}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">Applied</p>
@@ -493,23 +607,31 @@ export default function FreelancerFeed() {
                   setShowSkillsDropdown(false);
                   setShowToolsDropdown(false);
                 }}
-                className={`h-10 border-gray-300 hover:bg-gray-50 ${selectedExperience !== "ALL" ? "bg-blue-50 border-blue-200 text-blue-700" : ""}`}
+                className={`h-10 border-gray-300 hover:bg-gray-50 ${
+                  selectedExperience !== "ALL"
+                    ? "bg-blue-50 border-blue-200 text-blue-700"
+                    : ""
+                }`}
               >
                 <Star className="h-4 w-4 mr-2" />
                 {getExperienceDisplay()}
                 <ChevronDown className="h-4 w-4 ml-2" />
               </Button>
-              
+
               {showExperienceDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50">
                   <div className="p-3">
-                    <h3 className="font-medium text-gray-900 mb-2">Experience Level</h3>
+                    <h3 className="font-medium text-gray-900 mb-2">
+                      Experience Level
+                    </h3>
                     <div className="space-y-1">
                       {experienceLevels.map((level) => (
                         <button
                           key={level.value}
                           onClick={() => {
-                            setSelectedExperience(level.value as Experience | "ALL");
+                            setSelectedExperience(
+                              level.value as Experience | "ALL"
+                            );
                             setShowExperienceDropdown(false);
                           }}
                           className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
@@ -544,11 +666,13 @@ export default function FreelancerFeed() {
                 Pay: ₹20 - ₹{maxPay}
                 <ChevronDown className="h-4 w-4 ml-2" />
               </Button>
-              
+
               {showPayRangeDropdown && (
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg border border-gray-200 shadow-lg z-50">
                   <div className="p-4">
-                    <h3 className="font-medium text-gray-900 mb-3">Pay Range (₹/hr)</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">
+                      Pay Range (₹/hr)
+                    </h3>
                     <div className="space-y-4">
                       <div className="text-sm text-gray-600">
                         <span>Up to ₹{maxPay} per hour</span>
@@ -590,13 +714,17 @@ export default function FreelancerFeed() {
                   setShowSkillsDropdown(false);
                   setShowToolsDropdown(false);
                 }}
-                className={`h-10 border-gray-300 hover:bg-gray-50 ${selectedJobType !== "ALL" ? "bg-blue-50 border-blue-200 text-blue-700" : ""}`}
+                className={`h-10 border-gray-300 hover:bg-gray-50 ${
+                  selectedJobType !== "ALL"
+                    ? "bg-blue-50 border-blue-200 text-blue-700"
+                    : ""
+                }`}
               >
                 <MapPin className="h-4 w-4 mr-2" />
                 {getJobTypeDisplay()}
                 <ChevronDown className="h-4 w-4 ml-2" />
               </Button>
-              
+
               {showJobTypeDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50">
                   <div className="p-3">
@@ -636,13 +764,17 @@ export default function FreelancerFeed() {
                     setShowJobTypeDropdown(false);
                     setShowToolsDropdown(false);
                   }}
-                  className={`h-10 border-gray-300 hover:bg-gray-50 ${selectedSkills.size > 0 ? "bg-blue-50 border-blue-200 text-blue-700" : ""}`}
+                  className={`h-10 border-gray-300 hover:bg-gray-50 ${
+                    selectedSkills.size > 0
+                      ? "bg-blue-50 border-blue-200 text-blue-700"
+                      : ""
+                  }`}
                 >
                   <Code className="h-4 w-4 mr-2" />
                   {getSkillsDisplay()}
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
-                
+
                 {showSkillsDropdown && (
                   <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg border border-gray-200 shadow-lg z-50 max-h-96 overflow-y-auto">
                     <div className="p-4">
@@ -707,18 +839,24 @@ export default function FreelancerFeed() {
                     setShowJobTypeDropdown(false);
                     setShowSkillsDropdown(false);
                   }}
-                  className={`h-10 border-gray-300 hover:bg-gray-50 ${selectedTools.size > 0 ? "bg-blue-50 border-blue-200 text-blue-700" : ""}`}
+                  className={`h-10 border-gray-300 hover:bg-gray-50 ${
+                    selectedTools.size > 0
+                      ? "bg-blue-50 border-blue-200 text-blue-700"
+                      : ""
+                  }`}
                 >
                   <ToolCase className="h-4 w-4 mr-2" />
                   {getToolsDisplay()}
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
-                
+
                 {showToolsDropdown && (
                   <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg border border-gray-200 shadow-lg z-50 max-h-96 overflow-y-auto">
                     <div className="p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium text-gray-900">Tools & Technologies</h3>
+                        <h3 className="font-medium text-gray-900">
+                          Tools & Technologies
+                        </h3>
                         {selectedTools.size > 0 && (
                           <button
                             onClick={() => setSelectedTools(new Set())}
@@ -769,7 +907,10 @@ export default function FreelancerFeed() {
         </div>
 
         {/* Active Filters Bar */}
-        {(selectedExperience !== "ALL" || selectedJobType !== "ALL" || selectedSkills.size > 0 || selectedTools.size > 0) && (
+        {(selectedExperience !== "ALL" ||
+          selectedJobType !== "ALL" ||
+          selectedSkills.size > 0 ||
+          selectedTools.size > 0) && (
           <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Active filters:</span>
@@ -798,7 +939,8 @@ export default function FreelancerFeed() {
                 )}
                 {selectedSkills.size > 0 && (
                   <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                    {selectedSkills.size} skill{selectedSkills.size > 1 ? "s" : ""}
+                    {selectedSkills.size} skill
+                    {selectedSkills.size > 1 ? "s" : ""}
                     <button
                       onClick={() => setSelectedSkills(new Set())}
                       className="ml-1 text-blue-600 hover:text-blue-800"
@@ -868,34 +1010,44 @@ export default function FreelancerFeed() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                id={job.id}
-                title={job.title}
-                client={job.client}
-                payPerHour={job.payPerHour}
-                mandatorySkills={job.mandatorySkills}
-                isSaved={savedJobs.has(job.id)}
-                applicationStatus={applications.get(job.id) || null}
-                onSaveJob={handleSaveJob}
-                onUnsaveJob={handleSaveJob}
-                onApply={handleApply}
-                onViewJob={handleViewJob}
-              />
-            ))}
+            {filteredJobs.map((job) => {
+              const isApplied = appliedJobs.has(job.id);
+              const applicationStatus = appliedJobsMap.get(job.id) || null;
+
+              return (
+                <JobCard
+                  key={job.id}
+                  id={job.id}
+                  title={job.title}
+                  client={job.client}
+                  payPerHour={job.payPerHour}
+                  mandatorySkills={job.mandatorySkills}
+                  isSaved={savedJobs.has(job.id)}
+                  applicationStatus={applicationStatus}
+                  onSaveJob={handleSaveJob}
+                  onUnsaveJob={handleSaveJob}
+                  onApply={isApplied ? undefined : handleApply}
+                  onViewJob={handleViewJob}
+                />
+              );
+            })}
           </div>
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* In the pagination controls section */}
               <div className="text-sm text-gray-600">
                 Showing{" "}
                 <span className="font-medium">{filteredJobs.length}</span> of{" "}
                 <span className="font-medium">
-                  {jobs.filter((j) => j.status === "OPEN").length}
+                  {
+                    jobs.filter(
+                      (j) => j.status === "OPEN" && !appliedJobs.has(j.id)
+                    ).length
+                  }
                 </span>{" "}
-                open jobs
+                available jobs {/* Updated text */}
               </div>
               <div className="flex items-center gap-2">
                 <Button

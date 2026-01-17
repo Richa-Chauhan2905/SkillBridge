@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -10,6 +10,8 @@ import {
   Bookmark,
   MessageSquare,
   PlusCircle,
+  FileText,
+  LogOut
 } from "lucide-react";
 
 export default function Navbar() {
@@ -18,11 +20,15 @@ export default function Navbar() {
 
   const role = session?.user?.role as "FREELANCER" | "CLIENT" | undefined;
 
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
   return (
     <nav className="w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <Link
-          href={session ? (role === "FREELANCER" ? "/freelancer-feed" : "/client-feed") : "/"}
+          href={session ? (role === "FREELANCER" ? "/feed" : "/feed") : "/"}
           className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
         >
           SkillBridge
@@ -47,13 +53,12 @@ export default function Navbar() {
         ) : (
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-8">
-              
               {role === "CLIENT" && (
                 <>
                   {/* <Link
-                    href="/client-feed"
+                    href="/feed"
                     className={`flex items-center gap-2 text-sm transition-colors ${
-                      pathname === "/client-feed"
+                      pathname === "/feed"
                         ? "text-blue-600 font-medium"
                         : "text-gray-700 hover:text-blue-600"
                     }`}
@@ -61,7 +66,7 @@ export default function Navbar() {
                     <Search size={18} />
                     Find Freelancers
                   </Link> */}
-                  
+
                   <Link
                     href="/post-job"
                     className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors"
@@ -74,18 +79,18 @@ export default function Navbar() {
 
               {role === "FREELANCER" && (
                 <>
-                  <Link
-                    href="/freelancer-feed"
+                  {/* <Link
+                    href="/feed"
                     className={`flex items-center gap-2 text-sm transition-colors ${
-                      pathname === "/freelancer-feed"
+                      pathname === "/feed"
                         ? "text-blue-600 font-medium"
                         : "text-gray-700 hover:text-blue-600"
                     }`}
                   >
                     <Briefcase size={18} />
                     Job Feed
-                  </Link>
-                  
+                  </Link> */}
+
                   <Link
                     href="/saved-jobs"
                     className={`flex items-center gap-2 text-sm transition-colors ${
@@ -96,6 +101,17 @@ export default function Navbar() {
                   >
                     <Bookmark size={18} />
                     Saved Jobs
+                  </Link>
+                  <Link
+                    href="/my-applications"
+                    className={`flex items-center gap-2 text-sm transition-colors ${
+                      pathname === "/my-applications"
+                        ? "text-blue-600 font-medium"
+                        : "text-gray-700 hover:text-blue-600"
+                    }`}
+                  >
+                    <FileText size={18} />
+                    My Applications
                   </Link>
                 </>
               )}
@@ -147,6 +163,17 @@ export default function Navbar() {
                 </AvatarFallback>
               </Avatar>
             </Link>
+            {/* Sign Out Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center gap-2 text-gray-700 hover:text-red-600 hover:bg-red-50"
+              title="Sign Out"
+            >
+              <LogOut size={16} />
+              <span className="hidden sm:inline">Sign Out</span>
+            </Button>
           </div>
         )}
       </div>
