@@ -188,7 +188,7 @@ export default function PostJobPage() {
       )}
 
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Post New Job</h1>
+        <h1 className="text-2xl font-semibold text-blue-600">Post New Job</h1>
         <p className="text-gray-600 mt-1">
           Create a job posting to find qualified freelancers
         </p>
@@ -408,7 +408,7 @@ export default function PostJobPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gray-900 hover:bg-black text-white"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white"
               >
                 {loading ? (
                   <>
