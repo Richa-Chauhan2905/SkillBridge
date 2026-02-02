@@ -14,7 +14,6 @@ import {
   FileText,
   LogOut,
   Bell,
-  X,
   CheckCircle,
   Clock,
   AlertCircle,
@@ -189,11 +188,12 @@ export default function Navbar() {
                 </>
               )}
 
+              {/* Changed from /client-jobs to /my-jobs */}
               {role === "CLIENT" && (
                 <Link
-                  href="/client-jobs"
+                  href="/my-jobs"
                   className={`flex items-center gap-2 text-sm transition-colors ${
-                    pathname === "/client-jobs"
+                    pathname === "/my-jobs"
                       ? "text-blue-600 font-medium"
                       : "text-gray-700 hover:text-blue-600"
                   }`}
@@ -332,7 +332,7 @@ export default function Navbar() {
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium text-gray-900">
                     {session.user?.firstName} {session.user?.lastName}
-                  </p>
+                </p>
                   <p className="text-xs text-gray-500 capitalize">
                     {role?.toLowerCase()}
                   </p>

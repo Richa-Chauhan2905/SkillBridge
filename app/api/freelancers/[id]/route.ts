@@ -1,16 +1,19 @@
 import { prisma } from "@/app";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 
-export async function GET(context: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest, // Add request parameter (can be unused if not needed)
+  context: { params: { id: string } }, // params is now the second parameter
+) {
   try {
     const user = await getAuthUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
+        { status: 401 },
+      );  
     }
     if (user.role !== "CLIENT") {
       return NextResponse.json(
@@ -18,13 +21,13 @@ export async function GET(context: { params: { id: string } }) {
           success: false,
           message: "Only clients can view freelancer profiles",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
     const { id: freelancerId } = context.params;
 
-    const freelancer = await prisma.freelancerProfile.findUnique({
+    const freelancer = await prisma.freelancerProfile.findFirst({
       where: {
         userId: freelancerId,
       },
@@ -43,7 +46,7 @@ export async function GET(context: { params: { id: string } }) {
     if (!freelancer) {
       return NextResponse.json(
         { success: false, message: "Freelancer not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -52,7 +55,7 @@ export async function GET(context: { params: { id: string } }) {
     console.error("Error fetching freelancer:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

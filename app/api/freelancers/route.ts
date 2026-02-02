@@ -12,7 +12,7 @@ export const GET = async () => {
           success: false,
           message: "Only client can view freelancer profiles",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -21,13 +21,13 @@ export const GET = async () => {
       select: { industry: true },
     });
 
-    if (!client) {  
+    if (!client) {
       return NextResponse.json(
         {
           success: false,
           message: "Client profile not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -48,7 +48,7 @@ export const GET = async () => {
         education: true,
         skills: true,
         languages: true,
-        resume: true, // Add this
+        resume: true,
         pincode: true,
         contact: true,
         user: {
@@ -85,10 +85,11 @@ export const GET = async () => {
       success: true,
       transformedFreelancers,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error);
     return NextResponse.json(
       { success: false, message: "Server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 };
