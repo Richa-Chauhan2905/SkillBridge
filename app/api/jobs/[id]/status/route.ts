@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app";
+import { prisma } from "@/app/index";
 import { getAuthUser } from "@/lib/auth";
 import { JobStatus } from "@/app/generated/prisma/enums";
 

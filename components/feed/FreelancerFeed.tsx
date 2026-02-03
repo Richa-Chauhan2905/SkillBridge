@@ -147,8 +147,8 @@ export default function FreelancerFeed() {
               data.applications?.map((app: AppliedJob) => ({
                 id: app.jobId,
                 status: app.status,
-              })) || []
-            )
+              })) || [],
+            ),
           );
         }
       }
@@ -166,7 +166,7 @@ export default function FreelancerFeed() {
             (job: { id: string; status: ApplicationStatus }) => {
               appliedIds.add(job.id);
               appliedMap.set(job.id, job.status);
-            }
+            },
           );
 
           setAppliedJobs(appliedIds);
@@ -196,10 +196,10 @@ export default function FreelancerFeed() {
           // Extract all unique skills and tools from fetched jobs
           const jobsArray = fetchedJobs as Job[];
           const skills = Array.from(
-            new Set(jobsArray.flatMap((job: Job) => job.mandatorySkills || []))
+            new Set(jobsArray.flatMap((job: Job) => job.mandatorySkills || [])),
           );
           const tools = Array.from(
-            new Set(jobsArray.flatMap((job: Job) => job.tools || []))
+            new Set(jobsArray.flatMap((job: Job) => job.tools || [])),
           );
           setAllSkills(skills);
           setAllTools(tools);
@@ -248,7 +248,7 @@ export default function FreelancerFeed() {
               // Also update localStorage for backward compatibility
               localStorage.setItem(
                 "freelancerSavedJobs",
-                JSON.stringify(savedJobIds)
+                JSON.stringify(savedJobIds),
               );
             }
           }
@@ -284,6 +284,7 @@ export default function FreelancerFeed() {
 
     // FILTER OUT APPLIED JOBS - Add this filter first
     result = result.filter((job) => !appliedJobs.has(job.id));
+    result = result.filter((job) => !savedJobs.has(job.id));
 
     // Search filter
     if (searchTerm) {
@@ -293,19 +294,19 @@ export default function FreelancerFeed() {
           job.title.toLowerCase().includes(term) ||
           job.description.toLowerCase().includes(term) ||
           job.mandatorySkills.some((skill) =>
-            skill.toLowerCase().includes(term)
+            skill.toLowerCase().includes(term),
           ) ||
           job.client.firstName.toLowerCase().includes(term) ||
           job.client.lastName.toLowerCase().includes(term) ||
           job.client.clientProfile?.companyName?.toLowerCase().includes(term) ||
-          false
+          false,
       );
     }
 
     // Experience filter
     if (selectedExperience !== "ALL") {
       result = result.filter(
-        (job) => job.requiredExperience === selectedExperience
+        (job) => job.requiredExperience === selectedExperience,
       );
     }
 
@@ -332,15 +333,15 @@ export default function FreelancerFeed() {
     if (selectedSkills.size > 0) {
       result = result.filter((job) =>
         Array.from(selectedSkills).every((skill) =>
-          job.mandatorySkills.includes(skill)
-        )
+          job.mandatorySkills.includes(skill),
+        ),
       );
     }
 
     // Tools filter
     if (selectedTools.size > 0) {
       result = result.filter((job) =>
-        Array.from(selectedTools).every((tool) => job.tools?.includes(tool))
+        Array.from(selectedTools).every((tool) => job.tools?.includes(tool)),
       );
     }
 
@@ -356,7 +357,8 @@ export default function FreelancerFeed() {
     selectedSkills,
     selectedTools,
     maxPay,
-    appliedJobs, // Add appliedJobs to dependencies
+    appliedJobs,
+    savedJobs, // Add appliedJobs to dependencies
   ]);
 
   const handleViewJob = (id: string) => {
@@ -386,7 +388,7 @@ export default function FreelancerFeed() {
 
         localStorage.setItem(
           "freelancerSavedJobs",
-          JSON.stringify(savedJobsArray)
+          JSON.stringify(savedJobsArray),
         );
       } else {
         // Add to saved - POST request to backend
@@ -403,7 +405,7 @@ export default function FreelancerFeed() {
 
         localStorage.setItem(
           "freelancerSavedJobs",
-          JSON.stringify(savedJobsArray)
+          JSON.stringify(savedJobsArray),
         );
       }
     } catch (error) {
@@ -630,7 +632,7 @@ export default function FreelancerFeed() {
                           key={level.value}
                           onClick={() => {
                             setSelectedExperience(
-                              level.value as Experience | "ALL"
+                              level.value as Experience | "ALL",
                             );
                             setShowExperienceDropdown(false);
                           }}
@@ -1043,7 +1045,7 @@ export default function FreelancerFeed() {
                 <span className="font-medium">
                   {
                     jobs.filter(
-                      (j) => j.status === "OPEN" && !appliedJobs.has(j.id)
+                      (j) => j.status === "OPEN" && !appliedJobs.has(j.id),
                     ).length
                   }
                 </span>{" "}

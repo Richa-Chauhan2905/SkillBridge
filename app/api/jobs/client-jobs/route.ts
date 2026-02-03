@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getAuthUser } from "@/lib/auth";
-import { prisma } from "@/app";
+import { prisma } from "@/app/index";
 
 const ITEMS_PER_PAGE = 10;
 
