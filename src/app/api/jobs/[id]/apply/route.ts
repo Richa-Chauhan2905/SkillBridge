@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/src/db";
-import { jobs, applications } from "@/src/db/schema";
+import { jobs, applications, notifications } from "@/src/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getAuthUser } from "@/src/lib/auth";
 
@@ -22,7 +22,7 @@ export const POST = async (
 
     /* ===== Check job exists ===== */
     const jobResult = await db
-      .select({ id: jobs.id, status: jobs.status })
+      .select({ id: jobs.id, status: jobs.status, clientId: jobs.clientId })
       .from(jobs)
       .where(eq(jobs.id, jobId)); // ✅ jobId is now a string
 
@@ -67,6 +67,16 @@ export const POST = async (
         freelancerId: user.id,
       })
       .returning();
+
+    if (job.clientId) {
+      await db.insert(notifications).values({
+        userId: job.clientId,
+        type: "JOB",
+        title: "New application received",
+        description: "A freelancer applied to your job.",
+        link: `/job-applications/${jobId}`,
+      });
+    }
 
     return NextResponse.json(
       {

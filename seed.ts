@@ -260,12 +260,14 @@ async function seed() {
       type: "JOB",
       title: "New Application Received",
       description: "A freelancer applied to your job",
+      link: `/job-applications/${insertedJobs[0].id}`,
     },
     {
       userId: freelancer1.id,
       type: "JOB",
       title: "New Job Match",
       description: "A new React job matches your skills",
+      link: `/jobs/${insertedJobs[1].id}`,
     },
   ]);
 

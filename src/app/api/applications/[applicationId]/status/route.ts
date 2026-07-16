@@ -100,13 +100,16 @@ export const PATCH = async (
           );
 
         // 4. Notification
-        await tx.insert(notifications).values({
-          userId: app.freelancerId,
-          type: "JOB",
-          title: "You’ve been hired 🎉",
-          description:
-            "Congratulations! You were hired for a job you applied to.",
-        });
+        if (app.freelancerId) {
+          await tx.insert(notifications).values({
+            userId: app.freelancerId,
+            type: "JOB",
+            title: "You've been hired",
+            description:
+              "Congratulations! You were hired for a job you applied to.",
+            link: "/my-applications",
+          });
+        }
       }
     });
 

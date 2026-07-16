@@ -1,18 +1,15 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
-export { default } from "next-auth/middleware";
 
 export const proxy = async (req: NextRequest) => {
-  const token = await getToken({ req });
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const url = req.nextUrl;
+  const isAuthPage = url.pathname === "/signin" || url.pathname === "/signup";
+  const isLandingPage = url.pathname === "/";
 
-  // If user is authenticated, redirect away from auth pages
+  // Landing and auth pages are only for unauthenticated users.
   if (token) {
-    if (url.pathname === "/signin" || url.pathname === "/") {
-      return NextResponse.redirect(new URL("/feed", req.url));
-    }
-    if (url.pathname === "/signup") {
-      // After signup, user will be redirected based on their role
+    if (isLandingPage || isAuthPage) {
       return NextResponse.redirect(new URL("/feed", req.url));
     }
   }

@@ -194,6 +194,7 @@ export const notifications = pgTable("notifications", {
   type: notificationTypeEnum("type"),
   title: text("title"),
   description: text("description"),
+  link: text("link"),
   isNew: boolean("is_new").default(true),
 
   createdAt: timestamp("created_at").defaultNow(),

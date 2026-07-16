@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Button } from '@/src/components/ui/button';
-import { Avatar, AvatarFallback } from '@/src/components/ui/avatar';
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/src/components/ui/button";
+import { Avatar, AvatarFallback } from "@/src/components/ui/avatar";
 import {
   Briefcase,
   Bookmark,
-  MessageSquare,
   PlusCircle,
   FileText,
   LogOut,
@@ -24,8 +23,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/src/components/ui/dialog';
-import { Badge } from '@/src/components/ui/badge';
+} from "@/src/components/ui/dialog";
+import { Badge } from "@/src/components/ui/badge";
 
 type Notification = {
   id: string;
@@ -34,64 +33,142 @@ type Notification = {
   type: "info" | "success" | "warning" | "error";
   timestamp: string;
   read: boolean;
-  link?: string;
+  link: string;
 };
+
+type ApiNotification = {
+  id: string;
+  title?: string | null;
+  description?: string | null;
+  type?: string | null;
+  createdAt?: string | Date | null;
+  isNew?: boolean | null;
+  link?: string | null;
+};
+
+const formatTimestamp = (value?: string | Date | null) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+};
+
+const mapNotificationType = (type?: string | null): Notification["type"] => {
+  switch (type) {
+    case "JOB":
+      return "success";
+    case "PAYMENT":
+      return "warning";
+    case "MESSAGE":
+      return "info";
+    case "SYSTEM":
+      return "error";
+    default:
+      return "info";
+  }
+};
+
+const isAppPath = (link?: string | null) =>
+  Boolean(
+    link &&
+      link.startsWith("/") &&
+      !link.startsWith("//") &&
+      !link.startsWith("/\\"),
+  );
 
 export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      title: "Application Submitted",
-      message:
-        "Your application for 'Frontend Developer' has been submitted successfully.",
-      type: "success",
-      timestamp: "2 hours ago",
-      read: false,
-      link: "/my-applications",
-    },
-    {
-      id: "2",
-      title: "New Job Match",
-      message:
-        "A new job matching your skills has been posted: 'React Developer'",
-      type: "info",
-      timestamp: "1 day ago",
-      read: false,
-      link: "/feed",
-    },
-  ]);
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
 
   const role = session?.user?.role as "FREELANCER" | "CLIENT" | undefined;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Filter notifications based on user role
-  const filteredNotifications =
-    role === "CLIENT"
-      ? notifications.filter(
-          (n) => n.type !== "success" && n.type !== "warning"
-        ) // Filter client-specific notifications
-      : notifications; // Show all for freelancer
+  const fetchNotifications = useCallback(async () => {
+    if (!session) {
+      return [];
+    }
 
-  const unreadCount = filteredNotifications.filter((n) => !n.read).length;
+    const response = await fetch("/api/notifications", { cache: "no-store" });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return [];
+    }
+
+    return data.notifications
+      .filter((notification: ApiNotification) => isAppPath(notification.link))
+      .map((notification: ApiNotification) => ({
+        id: notification.id,
+        title: notification.title || "Notification",
+        message: notification.description || "",
+        type: mapNotificationType(notification.type),
+        timestamp: formatTimestamp(notification.createdAt),
+        read: !notification.isNew,
+        link: notification.link as string,
+      }));
+  }, [session]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadNotifications = async () => {
+      try {
+        const nextNotifications = await fetchNotifications();
+        if (!ignore) {
+          setNotifications(nextNotifications);
+        }
+      } catch {
+        if (!ignore) {
+          setNotifications([]);
+        }
+      }
+    };
+
+    loadNotifications();
+
+    return () => {
+      ignore = true;
+    };
+  }, [fetchNotifications]);
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     setNotifications((prev) =>
       prev.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
+        notification.id === id ? { ...notification, read: true } : notification,
+      ),
     );
+
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, read: true }))
+      prev.map((notification) => ({ ...notification, read: true })),
     );
+
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    });
   };
 
   const getNotificationIcon = (type: Notification["type"]) => {
@@ -124,7 +201,7 @@ export default function Navbar() {
     <nav className="w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <Link
-          href={session ? (role === "FREELANCER" ? "/feed" : "/feed") : "/"}
+          href={session ? "/feed" : "/"}
           className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
         >
           SkillBridge
@@ -150,15 +227,13 @@ export default function Navbar() {
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-8">
               {role === "CLIENT" && (
-                <>
-                  <Link
-                    href="/post-job"
-                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors"
-                  >
-                    <PlusCircle size={18} />
-                    Post Job
-                  </Link>
-                </>
+                <Link
+                  href="/post-job"
+                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  <PlusCircle size={18} />
+                  Post Job
+                </Link>
               )}
 
               {role === "FREELANCER" && (
@@ -202,19 +277,6 @@ export default function Navbar() {
                 </Link>
               )}
 
-              <Link
-                href="/messages"
-                className={`flex items-center gap-2 text-sm transition-colors ${
-                  pathname === "/messages"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-700 hover:text-blue-600"
-                }`}
-              >
-                <MessageSquare size={18} />
-                Messages
-              </Link>
-
-              {/* Notification Dialog */}
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -250,18 +312,18 @@ export default function Navbar() {
                     </DialogTitle>
                   </DialogHeader>
                   <div className="overflow-y-auto max-h-[60vh]">
-                    {filteredNotifications.length === 0 ? (
+                    {notifications.length === 0 ? (
                       <div className="text-center py-8 text-gray-500">
                         <Bell className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                         <p>No notifications</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {filteredNotifications.map((notification) => (
+                        {notifications.map((notification) => (
                           <div
                             key={notification.id}
                             className={`p-3 rounded-lg border ${getNotificationColor(
-                              notification.type
+                              notification.type,
                             )} border-l-4 ${
                               notification.read ? "bg-white" : "bg-blue-50"
                             } hover:bg-gray-50 transition-colors cursor-pointer`}
@@ -269,10 +331,8 @@ export default function Navbar() {
                               if (!notification.read) {
                                 markAsRead(notification.id);
                               }
-                              if (notification.link) {
-                                window.location.href = notification.link;
-                              }
                               setOpen(false);
+                              router.push(notification.link);
                             }}
                           >
                             <div className="flex items-start gap-3">
@@ -280,20 +340,22 @@ export default function Navbar() {
                                 {getNotificationIcon(notification.type)}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between gap-3">
                                   <p className="font-medium text-sm text-gray-900">
                                     {notification.title}
                                   </p>
                                   {!notification.read && (
-                                    <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                                    <div className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
                                   )}
                                 </div>
                                 <p className="text-sm text-gray-600 mt-1">
                                   {notification.message}
                                 </p>
-                                <p className="text-xs text-gray-400 mt-2">
-                                  {notification.timestamp}
-                                </p>
+                                {notification.timestamp && (
+                                  <p className="text-xs text-gray-400 mt-2">
+                                    {notification.timestamp}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -304,8 +366,7 @@ export default function Navbar() {
                   <div className="border-t pt-3">
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>
-                        {unreadCount} unread • {filteredNotifications.length}{" "}
-                        total
+                        {unreadCount} unread | {notifications.length} total
                       </span>
                       <Button
                         variant="ghost"
@@ -331,7 +392,7 @@ export default function Navbar() {
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium text-gray-900">
                     {session.user?.firstName} {session.user?.lastName}
-                </p>
+                  </p>
                   <p className="text-xs text-gray-500 capitalize">
                     {role?.toLowerCase()}
                   </p>
@@ -343,7 +404,6 @@ export default function Navbar() {
                 </Avatar>
               </Link>
 
-              {/* Sign Out Button */}
               <Button
                 variant="ghost"
                 size="sm"
