@@ -20,6 +20,7 @@ import {
   Briefcase,
   Mail,
   Phone,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,6 +54,30 @@ export default function FreelancerProfilePage() {
   const { data: session } = useSession();
   const [freelancer, setFreelancer] = useState<FreelancerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [messaging, setMessaging] = useState(false);
+
+  const handleMessage = async () => {
+    if (!freelancer) return;
+    try {
+      setMessaging(true);
+      const res = await fetch("/api/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId: freelancer.userId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        router.push(`/messages?chatId=${data.chatId}`);
+      } else {
+        toast.error(data.message || "Failed to start conversation");
+      }
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setMessaging(false);
+    }
+  };
 
   useEffect(() => {
     if (id && session?.user?.role === "CLIENT") {
@@ -132,10 +157,25 @@ export default function FreelancerProfilePage() {
                 </div>
               </div>
             </div>
-            <Button onClick={handleHire} className="bg-blue-600">
-              <Briefcase className="mr-2 h-4 w-4" />
-              Hire Freelancer
-            </Button>
+            <div className="flex gap-3 shrink-0">
+              <Button
+                onClick={handleMessage}
+                disabled={messaging}
+                variant="outline"
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                {messaging ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                )}
+                Message
+              </Button>
+              <Button onClick={handleHire} className="bg-blue-600">
+                <Briefcase className="mr-2 h-4 w-4" />
+                Hire Freelancer
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">

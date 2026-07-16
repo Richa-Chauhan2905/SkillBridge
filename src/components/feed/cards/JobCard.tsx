@@ -11,6 +11,7 @@ import {
   Briefcase,
   Clock,
   XCircle,
+  MessageSquare,
 } from "lucide-react";
 import { Badge } from "@/src/components/ui/badge";
 
@@ -22,6 +23,7 @@ export interface JobCardProps {
   payPerHour?: number;
   mandatorySkills: string[];
   client: {
+    id?: string;
     firstName: string;
     lastName: string;
     clientProfile?: {
@@ -34,6 +36,7 @@ export interface JobCardProps {
   onUnsaveJob?: (id: string) => Promise<void> | void;
   onApply?: (id: string) => void;
   onViewJob?: (id: string) => void;
+  onMessage?: (clientId: string) => void;
 }
 
 /* ================= COMPONENT ================= */
@@ -50,6 +53,7 @@ export default function JobCard({
   onUnsaveJob,
   onApply,
   onViewJob,
+  onMessage,
 }: JobCardProps) {
   const [saved, setSaved] = useState(isSaved);
   const [saving, setSaving] = useState(false);
@@ -168,11 +172,27 @@ export default function JobCard({
     }
 
     return (
-      <div
-        className={`flex items-center gap-1 px-3 py-1.5 rounded-md ${bgColor}`}
-      >
-        {icon}
-        <span className="text-sm font-medium text-gray-700">{label}</span>
+      <div className="flex items-center gap-2">
+        <div
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-md ${bgColor}`}
+        >
+          {icon}
+          <span className="text-sm font-medium text-gray-700">{label}</span>
+        </div>
+        {onMessage && client.id && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-blue-200 text-blue-600 hover:bg-blue-50 px-2.5"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMessage(client.id!);
+            }}
+            title="Message Client"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     );
   };

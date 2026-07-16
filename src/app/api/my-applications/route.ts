@@ -36,6 +36,7 @@ export const GET = async () => {
         createdAt: jobs.createdAt, // ✅ add
 
         // Client
+        clientId: users.id,
         firstName: users.firstName,
         lastName: users.lastName,
 
@@ -70,6 +71,7 @@ export const GET = async () => {
         createdAt: item.createdAt,
 
         client: {
+          id: item.clientId,
           firstName: item.firstName,
           lastName: item.lastName,
           clientProfile: {

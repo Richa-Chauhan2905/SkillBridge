@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -17,7 +17,7 @@ import { Label } from '@/src/components/ui/label';
 import { Alert, AlertDescription } from '@/src/components/ui/alert';
 import { Separator } from '@/src/components/ui/separator';
 
-export default function SigninPage() {
+function SigninContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -154,5 +154,17 @@ export default function SigninPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SigninPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <h1 className="text-xl text-gray-500">Loading...</h1>
+      </div>
+    }>
+      <SigninContent />
+    </Suspense>
   );
 }

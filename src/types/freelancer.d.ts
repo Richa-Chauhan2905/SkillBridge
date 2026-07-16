@@ -1,4 +1,4 @@
-import { Industry } from '@/src/app/generated/prisma/enums';
+import { Industry } from '@/src/lib/enums';
 
 export interface Freelancer {
   id: string;

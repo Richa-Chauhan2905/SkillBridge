@@ -6,6 +6,7 @@ import JobCard from '@/src/components/feed/cards/JobCard';
 import { Loader2, Briefcase, CheckCircle } from "lucide-react";
 import { Button } from '@/src/components/ui/button';
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface AppliedJob {
   id: string;
@@ -17,6 +18,7 @@ interface AppliedJob {
     payPerHour?: number;
     mandatorySkills: string[];
     client: {
+      id: string;
       firstName: string;
       lastName: string;
       clientProfile?: {
@@ -31,6 +33,29 @@ export default function MyApplicationsPage() {
   const router = useRouter();
   const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
   const [loading, setLoading] = useState(true);
+  const [messaging, setMessaging] = useState(false);
+
+  const handleMessage = async (clientId: string) => {
+    try {
+      setMessaging(true);
+      const res = await fetch("/api/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId: clientId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        router.push(`/messages?chatId=${data.chatId}`);
+      } else {
+        toast.error(data.message || "Failed to start conversation");
+      }
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setMessaging(false);
+    }
+  };
 
   useEffect(() => {
     if (!session) return;
@@ -136,6 +161,7 @@ export default function MyApplicationsPage() {
                   mandatorySkills={appliedJob.job.mandatorySkills}
                   applicationStatus={appliedJob.status}
                   onViewJob={(id) => router.push(`/jobs/${id}`)}
+                  onMessage={handleMessage}
                   // No onApply prop passed - button will be disabled
                 />
               );

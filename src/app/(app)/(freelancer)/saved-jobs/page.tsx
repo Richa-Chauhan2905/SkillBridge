@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Bookmark, Briefcase, X, ExternalLink, IndianRupeeIcon, CheckCircle } from "lucide-react";
 import { Button } from '@/src/components/ui/button';
 import { Badge } from '@/src/components/ui/badge';
-import { ApplicationStatus } from '@/src/app/generated/prisma/enums';
+import { ApplicationStatus } from '@/src/lib/enums';
 
 interface SavedJob {
   id: string;
@@ -106,7 +106,7 @@ export default function SavedJobsPage() {
         // Update applied jobs state
         setAppliedJobs(prev => {
           const newMap = new Map(prev);
-          newMap.set(jobId, "PENDING");
+          newMap.set(jobId, ApplicationStatus.PENDING);
           return newMap;
         });
       }

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Avatar, AvatarFallback } from "@/src/components/ui/avatar";
+import { useSocket } from "@/src/components/providers/socket-provider";
 import {
   Briefcase,
   Bookmark,
@@ -16,6 +17,7 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  MessageSquare,
 } from "lucide-react";
 import {
   Dialog,
@@ -89,6 +91,8 @@ export default function Navbar() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const { socket } = useSocket();
 
   const role = session?.user?.role as "FREELANCER" | "CLIENT" | undefined;
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -140,6 +144,41 @@ export default function Navbar() {
       ignore = true;
     };
   }, [fetchNotifications]);
+
+  const fetchUnreadMessages = useCallback(async () => {
+    if (!session) return;
+    try {
+      const res = await fetch("/api/chats");
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const count = data.chats.reduce((acc: number, chat: any) => acc + (chat.unreadCount || 0), 0);
+        setUnreadMessages(count);
+      }
+    } catch (err) {
+      console.error("Error fetching unread messages:", err);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    fetchUnreadMessages();
+  }, [fetchUnreadMessages]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("message_notification", () => {
+      fetchUnreadMessages();
+    });
+
+    socket.on("receive_message", () => {
+      fetchUnreadMessages();
+    });
+
+    return () => {
+      socket.off("message_notification");
+      socket.off("receive_message");
+    };
+  }, [socket, fetchUnreadMessages]);
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
@@ -276,6 +315,23 @@ export default function Navbar() {
                   My Jobs
                 </Link>
               )}
+
+              <Link
+                href="/messages"
+                className={`relative p-2 rounded-md hover:bg-blue-50 transition-colors ${
+                  pathname === "/messages"
+                    ? "text-blue-600"
+                    : "text-gray-700 hover:text-blue-600"
+                }`}
+                title="Messages"
+              >
+                <MessageSquare size={18} />
+                {unreadMessages > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-blue-600 text-white text-xs">
+                    {unreadMessages}
+                  </Badge>
+                )}
+              </Link>
 
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
