@@ -54,7 +54,7 @@ async function seed() {
       },
       {
         firstName: "Priya",
-        lastName: "Mehta",
+        lastName: "Mehta",  
         email: "priya@design.com",
         password: hashedPassword,
         role: "FREELANCER",
