@@ -15,7 +15,6 @@ import {
   ChevronDown,
   IndianRupeeIcon,
   Star,
-  MapPin,
   Code,
   ToolCase,
 } from "lucide-react";
@@ -83,7 +82,6 @@ export default function FreelancerFeed() {
   const [selectedExperience, setSelectedExperience] = useState<
     Experience | "ALL"
   >("ALL");
-  const [selectedJobType, setSelectedJobType] = useState<string>("ALL");
   const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
   const [selectedTools, setSelectedTools] = useState<Set<string>>(new Set());
 
@@ -97,7 +95,6 @@ export default function FreelancerFeed() {
   // Dropdown visibility states
   const [showExperienceDropdown, setShowExperienceDropdown] = useState(false);
   const [showPayRangeDropdown, setShowPayRangeDropdown] = useState(false);
-  const [showJobTypeDropdown, setShowJobTypeDropdown] = useState(false);
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
 
@@ -112,7 +109,6 @@ export default function FreelancerFeed() {
       ) {
         setShowExperienceDropdown(false);
         setShowPayRangeDropdown(false);
-        setShowJobTypeDropdown(false);
         setShowSkillsDropdown(false);
         setShowToolsDropdown(false);
       }
@@ -320,19 +316,6 @@ export default function FreelancerFeed() {
       return job.payPerHour >= 20 && job.payPerHour <= maxPay;
     });
 
-    // Job type filter (based on preferredLocation)
-    if (selectedJobType !== "ALL") {
-      result = result.filter((job) => {
-        if (!job.preferredLocation) return selectedJobType === "REMOTE";
-        const location = job.preferredLocation.toLowerCase();
-        if (selectedJobType === "REMOTE") return location.includes("remote");
-        if (selectedJobType === "ONSITE")
-          return !location.includes("remote") && !location.includes("hybrid");
-        if (selectedJobType === "HYBRID") return location.includes("hybrid");
-        return true;
-      });
-    }
-
     // Skills filter
     if (selectedSkills.size > 0) {
       result = result.filter((job) =>
@@ -357,7 +340,6 @@ export default function FreelancerFeed() {
     jobs,
     searchTerm,
     selectedExperience,
-    selectedJobType,
     selectedSkills,
     selectedTools,
     maxPay,
@@ -470,37 +452,11 @@ export default function FreelancerFeed() {
     { value: "EXPERT", label: "Expert" },
   ] as const;
 
-  // Job types
-  const jobTypes = [
-    { value: "ALL", label: "All Types" },
-    { value: "REMOTE", label: "Remote" },
-    { value: "ONSITE", label: "On-site" },
-    { value: "HYBRID", label: "Hybrid" },
-  ] as const;
-
-  // Get active filter count
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (selectedExperience !== "ALL") count++;
-    if (selectedJobType !== "ALL") count++;
-    if (selectedSkills.size > 0) count++;
-    if (selectedTools.size > 0) count++;
-    if (searchTerm) count++;
-    return count;
-  };
-
-  const activeFilterCount = getActiveFilterCount();
 
   // Get experience display text
   const getExperienceDisplay = () => {
     if (selectedExperience === "ALL") return "Experience";
     return selectedExperience;
-  };
-
-  // Get job type display text
-  const getJobTypeDisplay = () => {
-    if (selectedJobType === "ALL") return "Job Type";
-    return selectedJobType;
   };
 
   // Get skills display text
@@ -610,7 +566,6 @@ export default function FreelancerFeed() {
                 onClick={() => {
                   setShowExperienceDropdown(!showExperienceDropdown);
                   setShowPayRangeDropdown(false);
-                  setShowJobTypeDropdown(false);
                   setShowSkillsDropdown(false);
                   setShowToolsDropdown(false);
                 }}
@@ -663,7 +618,6 @@ export default function FreelancerFeed() {
                 onClick={() => {
                   setShowPayRangeDropdown(!showPayRangeDropdown);
                   setShowExperienceDropdown(false);
-                  setShowJobTypeDropdown(false);
                   setShowSkillsDropdown(false);
                   setShowToolsDropdown(false);
                 }}
@@ -710,55 +664,6 @@ export default function FreelancerFeed() {
               )}
             </div>
 
-            {/* Job Type Filter */}
-            <div className="relative">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowJobTypeDropdown(!showJobTypeDropdown);
-                  setShowExperienceDropdown(false);
-                  setShowPayRangeDropdown(false);
-                  setShowSkillsDropdown(false);
-                  setShowToolsDropdown(false);
-                }}
-                className={`h-10 border-gray-300 hover:bg-gray-50 ${
-                  selectedJobType !== "ALL"
-                    ? "bg-blue-50 border-blue-200 text-blue-700"
-                    : ""
-                }`}
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                {getJobTypeDisplay()}
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
-
-              {showJobTypeDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50">
-                  <div className="p-3">
-                    <h3 className="font-medium text-gray-900 mb-2">Job Type</h3>
-                    <div className="space-y-1">
-                      {jobTypes.map((type) => (
-                        <button
-                          key={type.value}
-                          onClick={() => {
-                            setSelectedJobType(type.value);
-                            setShowJobTypeDropdown(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
-                            selectedJobType === type.value
-                              ? "bg-blue-100 text-blue-700 font-medium"
-                              : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Skills Filter */}
             {allSkills.length > 0 && (
               <div className="relative">
@@ -768,7 +673,6 @@ export default function FreelancerFeed() {
                     setShowSkillsDropdown(!showSkillsDropdown);
                     setShowExperienceDropdown(false);
                     setShowPayRangeDropdown(false);
-                    setShowJobTypeDropdown(false);
                     setShowToolsDropdown(false);
                   }}
                   className={`h-10 border-gray-300 hover:bg-gray-50 ${
@@ -843,7 +747,6 @@ export default function FreelancerFeed() {
                     setShowToolsDropdown(!showToolsDropdown);
                     setShowExperienceDropdown(false);
                     setShowPayRangeDropdown(false);
-                    setShowJobTypeDropdown(false);
                     setShowSkillsDropdown(false);
                   }}
                   className={`h-10 border-gray-300 hover:bg-gray-50 ${
@@ -915,7 +818,6 @@ export default function FreelancerFeed() {
 
         {/* Active Filters Bar */}
         {(selectedExperience !== "ALL" ||
-          selectedJobType !== "ALL" ||
           selectedSkills.size > 0 ||
           selectedTools.size > 0) && (
           <div className="mt-4 pt-4 border-t border-gray-100">
@@ -927,17 +829,6 @@ export default function FreelancerFeed() {
                     {selectedExperience}
                     <button
                       onClick={() => setSelectedExperience("ALL")}
-                      className="ml-1 text-blue-600 hover:text-blue-800"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )}
-                {selectedJobType !== "ALL" && (
-                  <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                    {selectedJobType}
-                    <button
-                      onClick={() => setSelectedJobType("ALL")}
                       className="ml-1 text-blue-600 hover:text-blue-800"
                     >
                       <X className="h-3 w-3" />
@@ -973,7 +864,6 @@ export default function FreelancerFeed() {
                 size="sm"
                 onClick={() => {
                   setSelectedExperience("ALL");
-                  setSelectedJobType("ALL");
                   setSelectedSkills(new Set());
                   setSelectedTools(new Set());
                 }}
@@ -1004,7 +894,6 @@ export default function FreelancerFeed() {
               onClick={() => {
                 setSearchTerm("");
                 setSelectedExperience("ALL");
-                setSelectedJobType("ALL");
                 setSelectedSkills(new Set());
                 setSelectedTools(new Set());
               }}
