@@ -10,11 +10,9 @@ const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = parseInt(process.env.PORT || "3000", 10);
 
-// Prepare next app
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-// Keep track of online users and their sockets: mapping userId -> Set of socketIds
 const userSockets = new Map<string, Set<string>>();
 
 app.prepare().then(() => {
@@ -28,7 +26,6 @@ app.prepare().then(() => {
       origin: "*",
       methods: ["GET", "POST"],
     },
-    // Customize path if needed, default is /socket.io
     path: "/socket.io",
   });
 
@@ -36,7 +33,6 @@ app.prepare().then(() => {
     let currentUserId: string | null = null;
     console.log("Client connected via Socket.io:", socket.id);
 
-    // Register user association with their socket
     socket.on("register_user", (userId: string) => {
       if (!userId) return;
       currentUserId = userId;
@@ -50,21 +46,17 @@ app.prepare().then(() => {
       console.log(`Active users: ${userSockets.size}`);
     });
 
-    // Client joins a chat room channel
     socket.on("join_room", (chatId: string) => {
       if (!chatId) return;
       socket.join(chatId);
       console.log(`Socket ${socket.id} joined room/chat: ${chatId}`);
     });
-
-    // Client leaves a chat room channel
     socket.on("leave_room", (chatId: string) => {
       if (!chatId) return;
       socket.leave(chatId);
       console.log(`Socket ${socket.id} left room/chat: ${chatId}`);
     });
 
-    // Client sends a new message in real-time
     socket.on("send_message", async (data: {
       chatId: string;
       senderId: string;
@@ -74,7 +66,6 @@ app.prepare().then(() => {
       if (!chatId || !senderId || !content) return;
 
       try {
-        // 1. Insert message record into database
         const [savedMessage] = await db
           .insert(messages)
           .values({
@@ -85,18 +76,14 @@ app.prepare().then(() => {
           })
           .returning();
 
-        // 2. Update chat room's updatedAt timestamp
         await db
           .update(chats)
           .set({ updatedAt: new Date() })
           .where(eq(chats.id, chatId));
 
-        // 3. Broadcast the saved message to everyone in the room
         io.to(chatId).emit("receive_message", savedMessage);
         console.log(`Message broadcasted in room ${chatId}:`, content);
 
-        // 4. Also notify the recipient if they are online but not in this chat room
-        // Find participants in this chat room to notify
         const { chatParticipants } = await import("./src/db/schema");
         const participants = await db
           .select({ userId: chatParticipants.userId })
@@ -111,7 +98,6 @@ app.prepare().then(() => {
           const recipientSockets = userSockets.get(recipientId);
           if (recipientSockets) {
             for (const socketId of recipientSockets) {
-              // Notify their global socket session of a new message alert
               io.to(socketId).emit("message_notification", {
                 chatId,
                 senderId,
@@ -126,7 +112,6 @@ app.prepare().then(() => {
       }
     });
 
-    // Typing status indicators
     socket.on("typing_status", (data: {
       chatId: string;
       userId: string;
@@ -135,11 +120,9 @@ app.prepare().then(() => {
       const { chatId, userId, isTyping } = data;
       if (!chatId || !userId) return;
       
-      // Broadcast typing indicator to everyone else in this chat room
       socket.to(chatId).emit("user_typing", { chatId, userId, isTyping });
     });
 
-    // Mark messages as read/seen in real-time
     socket.on("read_messages", async (data: {
       chatId: string;
       userId: string; // The user who read the messages
@@ -148,7 +131,6 @@ app.prepare().then(() => {
       if (!chatId || !userId) return;
 
       try {
-        // Mark all messages sent by others in this chat room as seen
         await db
           .update(messages)
           .set({ isSeen: true })
@@ -160,7 +142,6 @@ app.prepare().then(() => {
             )
           );
 
-        // Notify other participants in the room that messages are read
         io.to(chatId).emit("messages_read", { chatId, userId });
         console.log(`Messages marked read in room ${chatId} by user ${userId}`);
       } catch (err) {
@@ -168,7 +149,6 @@ app.prepare().then(() => {
       }
     });
 
-    // Clean up socket association on disconnect
     socket.on("disconnect", () => {
       console.log("Client disconnected via Socket.io:", socket.id);
       if (currentUserId && userSockets.has(currentUserId)) {
